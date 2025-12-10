@@ -2,11 +2,26 @@
 //  DataView.swift
 //  BetterMorning
 //
-//  Placeholder file for Data feature.
+//  Data feature main view.
 //
 
 import SwiftUI
 
-// MARK: - Data Feature
-// Data feature views and view models go here
+// MARK: - Data View
+struct DataView: View {
+    var body: some View {
+        VStack {
+            Text("Data")
+                .style(.pageTitle)
+                .foregroundStyle(Color.colorNeutralBlack)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.colorNeutralWhite)
+    }
+}
+
+// MARK: - Preview
+#Preview("Data View") {
+    DataView()
+}
 
