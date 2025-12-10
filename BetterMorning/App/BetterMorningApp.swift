@@ -30,3 +30,4 @@ struct BetterMorningApp: App {
         .modelContainer(sharedModelContainer)
     }
 }
+

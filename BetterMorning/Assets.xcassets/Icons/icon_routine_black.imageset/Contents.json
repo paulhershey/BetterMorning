@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "icon_routine_black.svg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
