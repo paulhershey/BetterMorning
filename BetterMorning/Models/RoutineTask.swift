@@ -12,10 +12,12 @@ import SwiftData
 final class RoutineTask {
     var id: UUID
     var title: String
-    var time: Date // Specific time of day for this task
+    var time: Date // Specific time (e.g., 7:00 AM)
     var orderIndex: Int
-    var isCompleted: Bool // For tracking active session state
-    var routine: Routine? // Inverse relationship to parent Routine
+    var isCompleted: Bool
+    
+    // Inverse relationship to the parent Routine
+    var routine: Routine?
     
     init(
         title: String,
@@ -30,4 +32,3 @@ final class RoutineTask {
         self.isCompleted = isCompleted
     }
 }
-

@@ -11,38 +11,33 @@ import SwiftData
 @Model
 final class Routine {
     var id: UUID
-    var name: String
-    var bio: String?
-    var imageName: String?
-    var isActive: Bool
-    var startDate: Date?
+    var name: String // Renamed from 'title' to match CelebrityRoutine
     var typeString: String // "celebrity" or "custom"
-    @Relationship(deleteRule: .cascade) var tasks: [RoutineTask]
+    var isActive: Bool
+    var startDate: Date? // The date the user started this routine
+    var bio: String? // Optional: Only for celebrity routines
+    var imageName: String? // Optional: Only for celebrity routines
     var createdAt: Date
     
-    // Computed property to get RoutineType enum
-    var type: RoutineType {
-        get { RoutineType(rawValue: typeString) ?? .custom }
-        set { typeString = newValue.rawValue }
-    }
+    // Relationship to tasks (Deletes tasks if routine is deleted)
+    @Relationship(deleteRule: .cascade) var tasks: [RoutineTask]
     
     init(
         name: String,
-        bio: String? = nil,
-        imageName: String? = nil,
+        typeString: String = "celebrity",
         isActive: Bool = false,
         startDate: Date? = nil,
-        type: RoutineType = .custom
+        bio: String? = nil,
+        imageName: String? = nil
     ) {
         self.id = UUID()
         self.name = name
-        self.bio = bio
-        self.imageName = imageName
+        self.typeString = typeString
         self.isActive = isActive
         self.startDate = startDate
-        self.typeString = type.rawValue
-        self.tasks = []
+        self.bio = bio
+        self.imageName = imageName
         self.createdAt = Date()
+        self.tasks = []
     }
 }
-
