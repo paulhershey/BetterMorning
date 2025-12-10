@@ -8,9 +8,9 @@
 import Foundation
 
 // MARK: - Routine Type
-enum RoutineType {
-    case celebrity
-    case custom
+enum RoutineType: String {
+    case celebrity = "celebrity"
+    case custom = "custom"
 }
 
 // MARK: - Celebrity Routine (Static Display Data)

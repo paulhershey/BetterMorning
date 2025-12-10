@@ -11,24 +11,36 @@ import SwiftData
 @Model
 final class Routine {
     var id: UUID
-    var title: String
-    var iconSymbol: String // SF Symbol name
-    var colorHex: String // Hex code for customization
-    var targetStartTime: Date
+    var name: String
+    var bio: String?
+    var imageName: String?
+    var isActive: Bool
+    var startDate: Date?
+    var typeString: String // "celebrity" or "custom"
     @Relationship(deleteRule: .cascade) var tasks: [RoutineTask]
     var createdAt: Date
     
+    // Computed property to get RoutineType enum
+    var type: RoutineType {
+        get { RoutineType(rawValue: typeString) ?? .custom }
+        set { typeString = newValue.rawValue }
+    }
+    
     init(
-        title: String,
-        iconSymbol: String = "sun.max.fill",
-        colorHex: String = "#FF9500",
-        targetStartTime: Date = Date()
+        name: String,
+        bio: String? = nil,
+        imageName: String? = nil,
+        isActive: Bool = false,
+        startDate: Date? = nil,
+        type: RoutineType = .custom
     ) {
         self.id = UUID()
-        self.title = title
-        self.iconSymbol = iconSymbol
-        self.colorHex = colorHex
-        self.targetStartTime = targetStartTime
+        self.name = name
+        self.bio = bio
+        self.imageName = imageName
+        self.isActive = isActive
+        self.startDate = startDate
+        self.typeString = type.rawValue
         self.tasks = []
         self.createdAt = Date()
     }
