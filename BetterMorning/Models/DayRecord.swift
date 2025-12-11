@@ -2,7 +2,8 @@
 //  DayRecord.swift
 //  BetterMorning
 //
-//  SwiftData model representing a record of routine execution for a specific day.
+//  SwiftData model representing the outcome of one routine on one date.
+//  Stores both aggregate count and per-task completion details.
 //
 
 import Foundation
@@ -11,35 +12,27 @@ import SwiftData
 @Model
 final class DayRecord {
     var id: UUID
-    var date: Date // The calendar date this record represents
-    var routineId: UUID // Reference to the routine that was executed
-    var routineTitle: String // Snapshot of routine title at time of execution
-    var startedAt: Date? // When the user started the routine
-    var completedAt: Date? // When the user completed the routine
-    var isCompleted: Bool // Whether the routine was fully completed
-    var totalDurationMinutes: Int // Total time spent on the routine
-    @Relationship(deleteRule: .cascade) var logs: [UserLog]
-    var createdAt: Date
+    var date: Date // Calendar date (normalized to midnight)
+    var completedTasksCount: Int // Number of tasks completed that day
+    
+    // Relationship to the parent Routine
+    @Relationship var routine: Routine?
+    
+    // Relationship to per-task completion records (for ✓/✕ display)
+    @Relationship(deleteRule: .cascade, inverse: \TaskCompletion.dayRecord)
+    var taskCompletions: [TaskCompletion]
     
     init(
-        date: Date = Date(),
-        routineId: UUID,
-        routineTitle: String,
-        startedAt: Date? = nil,
-        completedAt: Date? = nil,
-        isCompleted: Bool = false,
-        totalDurationMinutes: Int = 0
+        date: Date,
+        completedTasksCount: Int = 0,
+        routine: Routine? = nil
     ) {
         self.id = UUID()
-        self.date = date
-        self.routineId = routineId
-        self.routineTitle = routineTitle
-        self.startedAt = startedAt
-        self.completedAt = completedAt
-        self.isCompleted = isCompleted
-        self.totalDurationMinutes = totalDurationMinutes
-        self.logs = []
-        self.createdAt = Date()
+        // Normalize date to midnight
+        self.date = Calendar.current.startOfDay(for: date)
+        self.completedTasksCount = completedTasksCount
+        self.routine = routine
+        self.taskCompletions = []
     }
 }
 

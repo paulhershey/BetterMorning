@@ -6,33 +6,55 @@ import SwiftUI
 class RoutineManager {
     static let shared = RoutineManager()
     
-    // FIX: Made static to avoid conflict with @Observable
+    // Stored ModelContext for database operations
+    private var modelContext: ModelContext?
+    
+    // Private initializer for singleton
+    private init() {}
+    
+    // Time formatter for parsing celebrity task times
     private static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
-        // Force US Posix to ensure "7:00 AM" parses correctly regardless of user region settings
         formatter.locale = Locale(identifier: "en_US_POSIX")
         return formatter
     }()
     
-    func activate(celebrityRoutine: CelebrityRoutine, context: ModelContext) {
+    // MARK: - Configuration
+    
+    /// Configure the manager with a ModelContext. Call this once at app launch.
+    func configure(with context: ModelContext) {
+        self.modelContext = context
+    }
+    
+    // MARK: - Routine Activation
+    
+    /// Activate a celebrity routine (creates a new Routine in SwiftData)
+    func activate(celebrityRoutine: CelebrityRoutine) {
+        guard let context = modelContext else {
+            print("Error: RoutineManager not configured with ModelContext")
+            return
+        }
+        
         // 1. Deactivate any currently active routine
-        deactivateCurrentRoutine(context: context)
+        deactivateCurrentRoutine()
         
         // 2. Create the new Routine in the Database
-        let newRoutine = Routine(name: celebrityRoutine.name)
-        newRoutine.bio = celebrityRoutine.bio
-        newRoutine.imageName = celebrityRoutine.imageName
-        newRoutine.isActive = true
-        newRoutine.typeString = "celebrity"
+        let newRoutine = Routine(
+            name: celebrityRoutine.name,
+            type: .celebrity,
+            isActive: true,
+            bio: celebrityRoutine.bio,
+            imageName: celebrityRoutine.imageName
+        )
         
         // Set start date to Tomorrow
         if let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()) {
-            newRoutine.startDate = tomorrow
+            newRoutine.startDate = Calendar.current.startOfDay(for: tomorrow)
         }
         
         // 3. Convert and Add Tasks
-        for celebTask in celebrityRoutine.tasks {
+        for (index, celebTask) in celebrityRoutine.tasks.enumerated() {
             // Parse the time string (e.g. "7:00 AM")
             let dateValues = Self.timeFormatter.date(from: celebTask.time) ?? Date()
             
@@ -43,10 +65,9 @@ class RoutineManager {
             let newTask = RoutineTask(
                 title: celebTask.title,
                 time: taskTime,
-                orderIndex: 0 // We can calculate real order if needed, or rely on sort
+                orderIndex: index
             )
             
-            // Add to the relationship
             newRoutine.tasks.append(newTask)
         }
         
@@ -61,8 +82,12 @@ class RoutineManager {
         }
     }
     
-    func deactivateCurrentRoutine(context: ModelContext) {
-        // Fetch all active routines
+    // MARK: - Routine Deactivation
+    
+    /// Deactivate the current active routine
+    func deactivateCurrentRoutine() {
+        guard let context = modelContext else { return }
+        
         let descriptor = FetchDescriptor<Routine>(
             predicate: #Predicate { $0.isActive == true }
         )
@@ -71,11 +96,44 @@ class RoutineManager {
             let activeRoutines = try context.fetch(descriptor)
             for routine in activeRoutines {
                 routine.isActive = false
-                // Logic to save a final DayRecord for yesterday/today could go here
             }
             try context.save()
         } catch {
             print("Error deactivating routines: \(error)")
+        }
+    }
+    
+    // MARK: - Query Helpers
+    
+    /// Get the currently active routine
+    func getActiveRoutine() -> Routine? {
+        guard let context = modelContext else { return nil }
+        
+        let descriptor = FetchDescriptor<Routine>(
+            predicate: #Predicate { $0.isActive == true }
+        )
+        
+        do {
+            return try context.fetch(descriptor).first
+        } catch {
+            print("Error fetching active routine: \(error)")
+            return nil
+        }
+    }
+    
+    /// Get all routines
+    func getAllRoutines() -> [Routine] {
+        guard let context = modelContext else { return [] }
+        
+        let descriptor = FetchDescriptor<Routine>(
+            sortBy: [SortDescriptor(\.createdDate, order: .reverse)]
+        )
+        
+        do {
+            return try context.fetch(descriptor)
+        } catch {
+            print("Error fetching routines: \(error)")
+            return []
         }
     }
 }

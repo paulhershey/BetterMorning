@@ -6,13 +6,11 @@
 //
 
 import SwiftUI
-import SwiftData
 
 struct CelebrityDetailView: View {
     let routine: CelebrityRoutine
     
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var context
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -114,11 +112,8 @@ struct CelebrityDetailView: View {
             // Button container
             VStack {
                 BlockButton("Choose this Routine") {
-                    // Activate the routine
-                    RoutineManager.shared.activate(
-                        celebrityRoutine: routine,
-                        context: context
-                    )
+                    // Activate the routine (RoutineManager is pre-configured with context)
+                    RoutineManager.shared.activate(celebrityRoutine: routine)
                     
                     // Dismiss the view
                     dismiss()
