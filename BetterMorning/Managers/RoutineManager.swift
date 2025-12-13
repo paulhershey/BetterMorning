@@ -136,4 +136,313 @@ class RoutineManager {
             return []
         }
     }
+    
+    // MARK: - Task Completion
+    
+    /// Toggle the completion state of a task for a specific date
+    ///
+    /// **Logic:**
+    /// - If a TaskCompletion record exists → delete it (un-check)
+    /// - If no TaskCompletion record exists → create one with state = .completed (check)
+    ///
+    /// - Parameters:
+    ///   - task: The RoutineTask to toggle
+    ///   - date: The date to toggle completion for (normalized to midnight)
+    func toggleCompletion(for task: RoutineTask, on date: Date) {
+        guard let context = modelContext else {
+            print("Error: RoutineManager not configured with ModelContext")
+            return
+        }
+        
+        guard let routine = task.routine else {
+            print("Error: Task has no associated routine")
+            return
+        }
+        
+        let calendar = Calendar.current
+        let normalizedDate = calendar.startOfDay(for: date)
+        
+        // Get or create the DayRecord for this date
+        let dayRecord = getOrCreateDayRecord(for: routine, on: normalizedDate)
+        
+        // Check if a TaskCompletion already exists for this task on this date
+        if let existingCompletion = findTaskCompletion(taskId: task.id, in: dayRecord) {
+            // Toggle: If completed, set to incomplete (or delete)
+            // Per spec, unchecking returns to "untouched" state, so we delete the record
+            context.delete(existingCompletion)
+            dayRecord.completedTasksCount = max(0, dayRecord.completedTasksCount - 1)
+            print("Removed completion for task: \(task.title)")
+        } else {
+            // Create a new TaskCompletion record
+            let completion = TaskCompletion(
+                taskId: task.id,
+                taskTitle: task.title,
+                orderIndex: task.orderIndex,
+                state: .completed,
+                dayRecord: dayRecord
+            )
+            context.insert(completion)
+            dayRecord.taskCompletions.append(completion)
+            dayRecord.completedTasksCount += 1
+            print("Added completion for task: \(task.title)")
+        }
+        
+        // Also update the in-memory task.isCompleted for immediate UI feedback
+        task.isCompleted.toggle()
+        
+        // Save changes
+        do {
+            try context.save()
+        } catch {
+            print("Error saving task completion: \(error)")
+        }
+    }
+    
+    /// Check if a task is completed for a specific date
+    ///
+    /// - Parameters:
+    ///   - task: The RoutineTask to check
+    ///   - date: The date to check completion for
+    /// - Returns: Whether the task was completed on that date
+    func isTaskCompleted(_ task: RoutineTask, on date: Date) -> Bool {
+        guard let routine = task.routine else { return false }
+        
+        let calendar = Calendar.current
+        let normalizedDate = calendar.startOfDay(for: date)
+        
+        // Find the DayRecord for this date
+        guard let dayRecord = routine.dayRecords.first(where: { record in
+            calendar.isDate(record.date, inSameDayAs: normalizedDate)
+        }) else {
+            return false
+        }
+        
+        // Find the TaskCompletion for this task
+        let completion = dayRecord.taskCompletions.first { $0.taskId == task.id }
+        return completion?.state == .completed
+    }
+    
+    // MARK: - Private Helpers
+    
+    /// Get or create a DayRecord for a specific date and routine
+    private func getOrCreateDayRecord(for routine: Routine, on date: Date) -> DayRecord {
+        let calendar = Calendar.current
+        let normalizedDate = calendar.startOfDay(for: date)
+        
+        // Check if a DayRecord already exists for this date
+        if let existingRecord = routine.dayRecords.first(where: { record in
+            calendar.isDate(record.date, inSameDayAs: normalizedDate)
+        }) {
+            return existingRecord
+        }
+        
+        // Create a new DayRecord
+        let newRecord = DayRecord(
+            date: normalizedDate,
+            completedTasksCount: 0,
+            routine: routine
+        )
+        
+        guard let context = modelContext else {
+            print("Error: RoutineManager not configured with ModelContext")
+            return newRecord
+        }
+        
+        context.insert(newRecord)
+        routine.dayRecords.append(newRecord)
+        
+        do {
+            try context.save()
+            print("Created DayRecord for date: \(normalizedDate)")
+        } catch {
+            print("Error creating DayRecord: \(error)")
+        }
+        
+        return newRecord
+    }
+    
+    /// Find a TaskCompletion record for a specific task in a DayRecord
+    private func findTaskCompletion(taskId: UUID, in dayRecord: DayRecord) -> TaskCompletion? {
+        return dayRecord.taskCompletions.first { $0.taskId == taskId }
+    }
+    
+    // MARK: - Midnight Check / Day Finalization
+    
+    /// Perform midnight check and finalize previous day if needed
+    ///
+    /// **Functional Spec 8.4 Requirements:**
+    /// - At midnight, all tasks not marked ✓ become ✕ (incomplete)
+    /// - A DayRecord is finalized for that date
+    /// - User wakes to fresh, untouched tasks for the new day
+    ///
+    /// Call this on app launch and when RoutineView appears.
+    func performMidnightCheck() {
+        guard modelContext != nil else {
+            print("Error: RoutineManager not configured with ModelContext")
+            return
+        }
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Check if we've already done the midnight check today
+        let lastCheck = UserDefaults.standard.object(forKey: UserDefaultsKeys.lastMidnightCheck) as? Date
+        if let lastCheck = lastCheck, calendar.isDate(lastCheck, inSameDayAs: today) {
+            return // Already checked today
+        }
+        
+        // Get the active routine
+        guard let routine = getActiveRoutine() else {
+            // No active routine, just update the timestamp
+            UserDefaults.standard.set(today, forKey: UserDefaultsKeys.lastMidnightCheck)
+            AppStateManager.shared.lastMidnightCheck = today
+            return
+        }
+        
+        // Calculate yesterday
+        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: Date()) else {
+            return
+        }
+        
+        // Check if routine was active yesterday
+        if let startDate = routine.startDate,
+           calendar.startOfDay(for: startDate) <= calendar.startOfDay(for: yesterday) {
+            
+            // Finalize yesterday's data
+            finalizeDay(for: routine, on: yesterday)
+            
+            // Reset task.isCompleted for today (fresh start)
+            resetTasksForNewDay(routine: routine)
+        }
+        
+        // Update last check timestamp
+        UserDefaults.standard.set(today, forKey: UserDefaultsKeys.lastMidnightCheck)
+        AppStateManager.shared.lastMidnightCheck = today
+    }
+    
+    /// Finalize a specific day's data for a routine
+    ///
+    /// **Functional Spec 2.3 Requirements:**
+    /// - Only one DayRecord per (routineId, date)
+    /// - completedTasksCount = number of ✓ tasks that day
+    ///
+    /// This function is reusable for:
+    /// - Midnight reset (finalize yesterday)
+    /// - Routine switching (finalize current day for old routine)
+    ///
+    /// - Parameters:
+    ///   - routine: The Routine to finalize
+    ///   - date: The date to finalize (will be normalized to midnight)
+    func finalizeDay(for routine: Routine, on date: Date) {
+        guard let context = modelContext else {
+            print("Error: RoutineManager not configured with ModelContext")
+            return
+        }
+        
+        let calendar = Calendar.current
+        let normalizedDate = calendar.startOfDay(for: date)
+        
+        // Check if a DayRecord already exists for this date (upsert logic)
+        let existingRecord = routine.dayRecords.first { record in
+            calendar.isDate(record.date, inSameDayAs: normalizedDate)
+        }
+        
+        // Count completed tasks from TaskCompletion records in the database
+        let completedCount = countCompletedTasks(for: routine, on: normalizedDate)
+        
+        if let existingRecord = existingRecord {
+            // UPDATE: Record already exists, update the count
+            existingRecord.completedTasksCount = completedCount
+            print("📝 Updated DayRecord for \(normalizedDate): \(completedCount)/\(routine.tasks.count) tasks")
+        } else {
+            // INSERT: Create new DayRecord
+            let dayRecord = DayRecord(
+                date: normalizedDate,
+                completedTasksCount: completedCount,
+                routine: routine
+            )
+            
+            context.insert(dayRecord)
+            routine.dayRecords.append(dayRecord)
+            
+            // Create TaskCompletion records for each task (for ✓/✕ display on past days)
+            // Only if they don't already exist
+            createTaskCompletionRecords(for: routine, dayRecord: dayRecord)
+            
+            print("✅ Created DayRecord for \(normalizedDate): \(completedCount)/\(routine.tasks.count) tasks")
+        }
+        
+        // Save changes
+        do {
+            try context.save()
+        } catch {
+            print("Error finalizing day record: \(error)")
+        }
+    }
+    
+    /// Count completed tasks from TaskCompletion records in the database
+    ///
+    /// - Parameters:
+    ///   - routine: The Routine to check
+    ///   - date: The date to count completions for (normalized)
+    /// - Returns: Number of completed tasks
+    private func countCompletedTasks(for routine: Routine, on date: Date) -> Int {
+        let calendar = Calendar.current
+        
+        // First, check if there's an existing DayRecord with TaskCompletions
+        if let dayRecord = routine.dayRecords.first(where: { record in
+            calendar.isDate(record.date, inSameDayAs: date)
+        }) {
+            // Count from saved TaskCompletion records
+            return dayRecord.taskCompletions.filter { $0.state == .completed }.count
+        }
+        
+        // Fallback: If no DayRecord exists yet, count from task.isCompleted
+        // (This happens during first finalization of a day)
+        return routine.tasks.filter { $0.isCompleted }.count
+    }
+    
+    /// Create TaskCompletion records for each task in a routine
+    ///
+    /// - Parameters:
+    ///   - routine: The Routine with tasks
+    ///   - dayRecord: The DayRecord to attach completions to
+    private func createTaskCompletionRecords(for routine: Routine, dayRecord: DayRecord) {
+        guard let context = modelContext else { return }
+        
+        for task in routine.tasks {
+            // Check if completion already exists
+            let existingCompletion = dayRecord.taskCompletions.first { $0.taskId == task.id }
+            
+            if existingCompletion == nil {
+                let completion = TaskCompletion(
+                    taskId: task.id,
+                    taskTitle: task.title,
+                    orderIndex: task.orderIndex,
+                    state: task.isCompleted ? .completed : .incomplete,
+                    dayRecord: dayRecord
+                )
+                context.insert(completion)
+                dayRecord.taskCompletions.append(completion)
+            }
+        }
+    }
+    
+    /// Reset all task.isCompleted flags for a new day
+    ///
+    /// - Parameter routine: The Routine to reset
+    private func resetTasksForNewDay(routine: Routine) {
+        guard let context = modelContext else { return }
+        
+        for task in routine.tasks {
+            task.isCompleted = false
+        }
+        
+        do {
+            try context.save()
+            print("🔄 Reset tasks for new day")
+        } catch {
+            print("Error resetting tasks: \(error)")
+        }
+    }
 }

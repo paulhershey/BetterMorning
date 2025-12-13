@@ -11,26 +11,54 @@ import SwiftUI
 struct SettingsListItem: View {
     let title: String
     @Binding var isOn: Bool
+    var subtitle: String? = nil
+    var isDisabled: Bool = false
+    var onSubtitleTap: (() -> Void)? = nil
     
     init(
         title: String,
-        isOn: Binding<Bool>
+        isOn: Binding<Bool>,
+        subtitle: String? = nil,
+        isDisabled: Bool = false,
+        onSubtitleTap: (() -> Void)? = nil
     ) {
         self.title = title
         self._isOn = isOn
+        self.subtitle = subtitle
+        self.isDisabled = isDisabled
+        self.onSubtitleTap = onSubtitleTap
     }
     
     var body: some View {
-        HStack {
-            Text(title)
-                .style(.heading4)
-                .foregroundStyle(Color.colorNeutralBlack)
+        VStack(alignment: .leading, spacing: .sp8) {
+            HStack {
+                Text(title)
+                    .style(.heading4)
+                    .foregroundStyle(isDisabled ? Color.colorNeutralGrey2 : Color.colorNeutralBlack)
+                
+                Spacer()
+                
+                Toggle("", isOn: $isOn)
+                    .labelsHidden()
+                    .tint(Color.brandSecondary)
+                    .disabled(isDisabled)
+            }
             
-            Spacer()
-            
-            Toggle("", isOn: $isOn)
-                .labelsHidden()
-                .tint(Color.brandSecondary)
+            // Optional subtitle (e.g., "Open Settings to enable")
+            if let subtitle = subtitle {
+                if let onSubtitleTap = onSubtitleTap {
+                    Button(action: onSubtitleTap) {
+                        Text(subtitle)
+                            .style(.overline)
+                            .foregroundStyle(Color.brandPrimary)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Text(subtitle)
+                        .style(.overline)
+                        .foregroundStyle(Color.colorNeutralGrey2)
+                }
+            }
         }
     }
 }

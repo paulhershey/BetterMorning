@@ -90,6 +90,18 @@ struct TaskItem: View {
     }
     
     // MARK: - Visual Content
+    
+    /// Maximum character count for title to ensure it doesn't exceed 2 lines
+    private static let maxTitleCharacters = 80
+    
+    /// Truncated title respecting max character limit
+    private var displayTitle: String {
+        if title.count > Self.maxTitleCharacters {
+            return String(title.prefix(Self.maxTitleCharacters)) + "..."
+        }
+        return title
+    }
+    
     private var cardContent: some View {
         HStack(spacing: .sp16) {
             // Left side: Time and Title stacked vertically
@@ -98,22 +110,25 @@ struct TaskItem: View {
                     .style(.dataSmall)
                     .foregroundStyle(Color.colorNeutralGrey2)
                 
-                Text(title)
+                Text(displayTitle)
                     .style(.bodyRegular)
                     .foregroundStyle(Color.colorNeutralBlack)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
             }
             
-            Spacer()
+            Spacer(minLength: .sp8)
             
-            // Right side: Icon (if needed)
-            if let iconName = variant.iconName {
-                Image(iconName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 24, height: 24)
-                    // Animation for icon appearing/disappearing
-                    .transition(.scale.combined(with: .opacity))
+            // Right side: Icon area (always reserves 24pt width to prevent text shift)
+            ZStack {
+                if let iconName = variant.iconName {
+                    Image(iconName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .transition(.scale.combined(with: .opacity))
+                }
             }
+            .frame(width: 24, height: 24)
         }
         .padding(.sp16)
         .background(Color.colorNeutralWhite)
@@ -158,55 +173,72 @@ private struct TaskItemPreviewWrapper: View {
     @State private var restState: TaskItemVariant = .rest
     @State private var completedState: TaskItemVariant = .completed
     @State private var failedState: TaskItemVariant = .failed
+    @State private var longTitleState: TaskItemVariant = .rest
     
     var body: some View {
         ZStack {
             Color.colorNeutralGrey1.opacity(0.1).ignoresSafeArea()
             
-            VStack(spacing: .sp16) {
-                Text("Interactive (Tap to toggle)")
-                    .style(.dataSmall)
-                    .foregroundStyle(Color.colorNeutralGrey2)
-                
-                TaskItem(
-                    time: "6:30AM",
-                    title: "Rest Task",
-                    variant: $restState
-                ) {
-                    print("Toggled Rest")
+            ScrollView {
+                VStack(spacing: .sp16) {
+                    Text("Interactive (Tap to toggle)")
+                        .style(.dataSmall)
+                        .foregroundStyle(Color.colorNeutralGrey2)
+                    
+                    TaskItem(
+                        time: "6:30AM",
+                        title: "Rest Task",
+                        variant: $restState
+                    ) {
+                        print("Toggled Rest")
+                    }
+                    
+                    TaskItem(
+                        time: "7:00AM",
+                        title: "Completed Task",
+                        variant: $completedState
+                    ) {
+                        print("Toggled Completed")
+                    }
+                    
+                    Divider()
+                    
+                    Text("Long Title (2-line max + truncation)")
+                        .style(.dataSmall)
+                        .foregroundStyle(Color.colorNeutralGrey2)
+                    
+                    TaskItem(
+                        time: "6:45AM",
+                        title: "Drink strong tea (often with added ingredients like turmeric, ginger, and coconut oil) or water with lemon for hydration",
+                        variant: $longTitleState
+                    ) {
+                        print("Toggled Long Title")
+                    }
+                    
+                    Divider()
+                    
+                    Text("Display Only (Cannot tap)")
+                        .style(.dataSmall)
+                        .foregroundStyle(Color.colorNeutralGrey2)
+                    
+                    TaskItem(
+                        time: "6:00AM",
+                        title: "Active Task",
+                        variant: $activeState
+                    ) {
+                        print("Should not print")
+                    }
+                    
+                    TaskItem(
+                        time: "8:00AM",
+                        title: "Failed Task",
+                        variant: $failedState
+                    ) {
+                        print("Should not print")
+                    }
                 }
-                
-                TaskItem(
-                    time: "7:00AM",
-                    title: "Completed Task",
-                    variant: $completedState
-                ) {
-                    print("Toggled Completed")
-                }
-                
-                Divider()
-                
-                Text("Display Only (Cannot tap)")
-                    .style(.dataSmall)
-                    .foregroundStyle(Color.colorNeutralGrey2)
-                
-                TaskItem(
-                    time: "6:00AM",
-                    title: "Active Task",
-                    variant: $activeState
-                ) {
-                    print("Should not print")
-                }
-                
-                TaskItem(
-                    time: "8:00AM",
-                    title: "Failed Task",
-                    variant: $failedState
-                ) {
-                    print("Should not print")
-                }
+                .padding(.sp24)
             }
-            .padding(.sp24)
         }
     }
 }
