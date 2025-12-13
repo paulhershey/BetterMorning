@@ -27,11 +27,13 @@ struct OnboardingContent: View {
             Text(title)
                 .style(.display)
                 .foregroundStyle(Color.colorNeutralBlack)
+                .fixedSize(horizontal: false, vertical: true) // Allow text to wrap naturally
             
             // Usage updated here
             Text(bodyText)
                 .style(.bodyLarge)
                 .foregroundStyle(Color.colorNeutralBlack)
+                .fixedSize(horizontal: false, vertical: true) // Allow text to wrap naturally
         }
     }
 }

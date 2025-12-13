@@ -49,7 +49,7 @@ struct BlockButton: View {
                 .style(.buttonText)
                 .foregroundStyle(variant.textColor)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, .sp16)
+                .padding(.vertical, .sp24) // Per Figma: 24pt vertical padding
                 .background(variant.backgroundColor)
                 .clipShape(Capsule())
         }
