@@ -363,6 +363,21 @@ private struct TaskItemRow: View {
         return formatter
     }()
     
+    /// Whether this task is interactive (only today's tasks can be toggled)
+    private var isInteractive: Bool {
+        viewModel.isSelectedDateToday
+    }
+    
+    /// Accessibility hint explaining why a task may not be interactive
+    private var accessibilityHint: String {
+        if viewModel.isSelectedDateInPast {
+            return "This task is from a past day and cannot be changed"
+        } else if !viewModel.isSelectedDateToday {
+            return "This task is for a future day and cannot be completed yet"
+        }
+        return "Double tap to toggle completion"
+    }
+    
     var body: some View {
         TaskItem(
             time: Self.timeFormatter.string(from: task.time),
@@ -372,6 +387,10 @@ private struct TaskItemRow: View {
                 viewModel.toggleTaskCompletion(task: task)
             }
         )
+        // Only allow interaction for today's tasks
+        .allowsHitTesting(isInteractive)
+        // Accessibility support for screen readers
+        .accessibilityHint(accessibilityHint)
         .onAppear {
             syncVariantWithModel()
         }
