@@ -445,4 +445,119 @@ class RoutineManager {
             print("Error resetting tasks: \(error)")
         }
     }
+    
+    // MARK: - Restart Routine
+    
+    /// Restart an existing routine (makes it active, starts tomorrow)
+    ///
+    /// **Functional Spec Requirements:**
+    /// - Only one routine can be active at a time
+    /// - Restarting preserves historical data
+    /// - New period starts tomorrow with fresh tasks
+    ///
+    /// - Parameter routine: The Routine to restart
+    func restartRoutine(_ routine: Routine) {
+        guard let context = modelContext else {
+            print("Error: RoutineManager not configured with ModelContext")
+            return
+        }
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // 1. Handle currently active routine (if any, and if different from target)
+        if let currentActive = getActiveRoutine(), currentActive.id != routine.id {
+            // Finalize today's data for the old routine before deactivating
+            finalizeDay(for: currentActive, on: today)
+            
+            // Deactivate the old routine
+            currentActive.isActive = false
+            print("📤 Deactivated: \(currentActive.name)")
+        }
+        
+        // 2. Set the target routine as active
+        routine.isActive = true
+        
+        // 3. Set startDate to tomorrow
+        if let tomorrow = calendar.date(byAdding: .day, value: 1, to: today) {
+            routine.startDate = tomorrow
+            print("📅 Start date set to: \(tomorrow)")
+        }
+        
+        // 4. Reset all task completion states (fresh start)
+        for task in routine.tasks {
+            task.isCompleted = false
+        }
+        print("🔄 Reset all tasks for: \(routine.name)")
+        
+        // 5. Schedule notifications (TODO: Implement in notification manager)
+        scheduleNotificationsForRoutine(routine)
+        
+        // 6. Save changes
+        do {
+            try context.save()
+            print("✅ Successfully restarted: \(routine.name)")
+        } catch {
+            print("Error restarting routine: \(error)")
+        }
+    }
+    
+    // MARK: - Delete Routine
+    
+    /// Delete a routine and all its associated data
+    ///
+    /// **Functional Spec 10.4 Requirements:**
+    /// - Permanently delete the routine, all Day Records, all Task Completions
+    /// - If the deleted routine was active:
+    ///   - Set active routine to nil
+    ///   - Cancel scheduled notifications
+    ///   - Routine tab shows empty state
+    ///
+    /// - Parameter routine: The Routine to delete
+    func deleteRoutine(_ routine: Routine) {
+        guard let context = modelContext else {
+            print("Error: RoutineManager not configured with ModelContext")
+            return
+        }
+        
+        let routineName = routine.name
+        let wasActive = routine.isActive
+        
+        // 1. If this was the active routine, cancel notifications
+        if wasActive {
+            cancelNotificationsForRoutine(routine)
+            print("📤 Deactivated and canceling notifications for: \(routineName)")
+        }
+        
+        // 2. Delete the routine (SwiftData cascade handles related entities)
+        context.delete(routine)
+        
+        // 3. Save changes
+        do {
+            try context.save()
+            print("🗑️ Deleted routine: \(routineName) (wasActive: \(wasActive))")
+        } catch {
+            print("Error deleting routine: \(error)")
+        }
+    }
+    
+    // MARK: - Notifications (Stubs)
+    
+    /// Schedule notifications for a routine
+    ///
+    /// - Parameter routine: The Routine to schedule notifications for
+    private func scheduleNotificationsForRoutine(_ routine: Routine) {
+        // TODO: Implement actual notification scheduling
+        // This will be implemented when we build the notification system
+        print("🔔 Scheduling notifications for: \(routine.name) (stub)")
+    }
+    
+    /// Cancel notifications for a routine
+    ///
+    /// - Parameter routine: The Routine to cancel notifications for
+    private func cancelNotificationsForRoutine(_ routine: Routine) {
+        // TODO: Implement actual notification cancellation
+        // This will be implemented when we build the notification system
+        print("🔕 Canceling notifications for: \(routine.name) (stub)")
+    }
 }

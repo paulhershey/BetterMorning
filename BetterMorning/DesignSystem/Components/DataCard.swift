@@ -31,6 +31,12 @@ struct DataCard: View {
     
     @State private var showingActionSheet = false
     
+    /// Tracks horizontal drag offset for swipe gesture
+    @State private var dragOffset: CGFloat = 0
+    
+    /// Minimum swipe distance to trigger week navigation
+    private let swipeThreshold: CGFloat = 50
+    
     private let dayLabels = ["S", "M", "T", "W", "T", "F", "S"]
     
     init(
@@ -138,6 +144,27 @@ private extension DataCard {
         }
         .padding(.horizontal, .sp16)
         .padding(.vertical, .sp24)
+        .contentShape(Rectangle()) // Makes entire area tappable/draggable
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    dragOffset = value.translation.width
+                }
+                .onEnded { value in
+                    let horizontalSwipe = value.translation.width
+                    
+                    if horizontalSwipe > swipeThreshold {
+                        // Swiped right → go to previous week
+                        onPage(.previous)
+                    } else if horizontalSwipe < -swipeThreshold {
+                        // Swiped left → go to next week
+                        onPage(.next)
+                    }
+                    
+                    // Reset drag offset
+                    dragOffset = 0
+                }
+        )
     }
     
     var yAxisLabels: some View {
