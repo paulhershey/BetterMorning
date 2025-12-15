@@ -92,7 +92,7 @@ final class AppStateManager {
     func resetAllData(modelContext: ModelContext) {
         // 1. Clear UserDefaults (except purchase state)
         hasCompletedOnboarding = false
-        notificationsEnabled = true
+        notificationsEnabled = false // Reset to OFF - user can re-enable during onboarding
         lastMidnightCheck = nil
         
         // 2. Delete all SwiftData records
@@ -105,9 +105,9 @@ final class AppStateManager {
             print("Error resetting data: \(error)")
         }
         
-        // 3. Cancel all scheduled notifications
-        // TODO: Implement when NotificationManager is created
-        // NotificationManager.shared.cancelAllNotifications()
+        // 3. Cancel scheduled notifications
+        // Note: Notification cancellation is handled by SettingsViewModel.performReset()
+        // which calls this method after cancelling all notifications
     }
     
     /// Perform midnight check and finalize previous day if needed

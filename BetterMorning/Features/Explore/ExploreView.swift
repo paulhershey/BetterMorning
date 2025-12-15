@@ -13,16 +13,23 @@ struct ExploreView: View {
     // State for modal presentation
     @State private var selectedRoutine: CelebrityRoutine?
     
+    // State for Settings sheet
+    @State private var showingSettings: Bool = false
+    
+    // State for Create Routine flow
+    @State private var showingCreateRoutine: Bool = false
+    @State private var showingPaywall: Bool = false
+    
     var body: some View {
         VStack(spacing: 0) {
             // Header
             Header(
                 title: "Explore",
                 settingsAction: {
-                    // TODO: Settings action
+                    showingSettings = true
                 },
                 createAction: {
-                    // TODO: Create action
+                    handleCreateAction()
                 }
             )
             .padding(.top, .sp8) // ✅ Using your Spacing System
@@ -59,6 +66,35 @@ struct ExploreView: View {
         .navigationBarHidden(true)
         .sheet(item: $selectedRoutine) { routine in
             CelebrityDetailView(routine: routine)
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+                .presentationDetents([.height(298)])
+                .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showingCreateRoutine) {
+            CreateRoutineView()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
+        }
+        .sheet(isPresented: $showingPaywall) {
+            PaywallView(onPurchaseComplete: {
+                showingPaywall = false
+                showingCreateRoutine = true
+            })
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
+        }
+    }
+    
+    // MARK: - Actions
+    
+    private func handleCreateAction() {
+        if AppStateManager.shared.hasPurchasedPremium {
+            showingCreateRoutine = true
+        } else {
+            showingPaywall = true
         }
     }
 }

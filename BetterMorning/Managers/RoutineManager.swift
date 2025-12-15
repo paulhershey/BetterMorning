@@ -546,7 +546,7 @@ class RoutineManager {
     /// Schedule notifications for a routine
     ///
     /// - Parameter routine: The Routine to schedule notifications for
-    private func scheduleNotificationsForRoutine(_ routine: Routine) {
+    func scheduleNotificationsForRoutine(_ routine: Routine) {
         // TODO: Implement actual notification scheduling
         // This will be implemented when we build the notification system
         print("🔔 Scheduling notifications for: \(routine.name) (stub)")

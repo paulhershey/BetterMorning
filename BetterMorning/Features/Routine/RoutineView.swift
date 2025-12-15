@@ -23,6 +23,13 @@ struct RoutineView: View {
     @State private var notificationsEnabled: Bool = false
     @State private var notificationAuthStatus: UNAuthorizationStatus = .notDetermined
     
+    /// Whether to show the Settings sheet
+    @State private var showingSettings: Bool = false
+    
+    /// State for Create Routine flow
+    @State private var showingCreateRoutine: Bool = false
+    @State private var showingPaywall: Bool = false
+    
     // Preview-only state override
     private var previewState: RoutineViewPreviewState = .automatic
     
@@ -75,6 +82,35 @@ struct RoutineView: View {
         }
         .onChange(of: notificationsEnabled) { oldValue, newValue in
             handleNotificationToggleChange(newValue: newValue)
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+                .presentationDetents([.height(298)])
+                .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showingCreateRoutine) {
+            CreateRoutineView()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
+        }
+        .sheet(isPresented: $showingPaywall) {
+            PaywallView(onPurchaseComplete: {
+                showingPaywall = false
+                showingCreateRoutine = true
+            })
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
+        }
+    }
+    
+    // MARK: - Create Action
+    
+    private func handleCreateAction() {
+        if AppStateManager.shared.hasPurchasedPremium {
+            showingCreateRoutine = true
+        } else {
+            showingPaywall = true
         }
     }
     
@@ -187,10 +223,10 @@ struct RoutineView: View {
                 Header(
                     title: "Routine",
                     settingsAction: {
-                        print("Settings tapped")
+                        showingSettings = true
                     },
                     createAction: {
-                        print("Create tapped")
+                        handleCreateAction()
                     }
                 )
                 .padding(.top, .sp8)
@@ -222,7 +258,7 @@ struct RoutineView: View {
                         
                         // Create Button (branded/purple)
                         TextButton("Create", variant: .branded) {
-                            print("Create tapped")
+                            handleCreateAction()
                         }
                     }
                 }
@@ -257,10 +293,10 @@ struct RoutineView: View {
                 Header(
                     title: "Routine",
                     settingsAction: {
-                        print("Settings tapped")
+                        showingSettings = true
                     },
                     createAction: {
-                        print("Create tapped")
+                        handleCreateAction()
                     }
                 )
                 .padding(.top, .sp8)
@@ -304,10 +340,10 @@ struct RoutineView: View {
             Header(
                 title: "Routine",
                 settingsAction: {
-                    print("Settings tapped")
+                    showingSettings = true
                 },
                 createAction: {
-                    print("Create tapped")
+                    handleCreateAction()
                 }
             )
             .padding(.top, .sp8)

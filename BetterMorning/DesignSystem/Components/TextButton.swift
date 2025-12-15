@@ -12,6 +12,7 @@ enum TextButtonVariant {
     case branded
     case primary
     case secondary
+    case disabled
     
     var backgroundColor: Color {
         switch self {
@@ -20,6 +21,8 @@ enum TextButtonVariant {
         case .primary:
             return Color.colorNeutralBlack
         case .secondary:
+            return Color.colorNeutralGrey1
+        case .disabled:
             return Color.colorNeutralGrey1
         }
     }
@@ -32,6 +35,8 @@ enum TextButtonVariant {
             return Color.colorNeutralWhite
         case .secondary:
             return Color.colorNeutralGrey2
+        case .disabled:
+            return Color.colorNeutralGrey2
         }
     }
     
@@ -41,7 +46,7 @@ enum TextButtonVariant {
             return "icon_add_black"
         case .primary:
             return "icon_add_white"
-        case .secondary:
+        case .secondary, .disabled:
             return "icon_add_black"
         }
     }

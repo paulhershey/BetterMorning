@@ -61,7 +61,7 @@ struct CustomHeader: View {
             // Right: Save button
             TextButton(
                 "Save",
-                variant: isSaveEnabled ? .branded : .secondary,
+                variant: isSaveEnabled ? .branded : .disabled,
                 action: {
                     if isSaveEnabled {
                         onSave()

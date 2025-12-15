@@ -35,5 +35,11 @@ enum UserDefaultsKeys {
     /// - Used to determine if previous day needs to be finalized
     /// - Reset behavior: Cleared on "Reset all data"
     static let lastMidnightCheck = "com.bettermorning.lastMidnightCheck"
+    
+    // MARK: - Custom Routine Creation
+    
+    /// Stores the in-progress routine draft as JSON for crash recovery
+    /// - Reset behavior: Cleared when routine is saved or explicitly discarded
+    static let createRoutineDraft = "com.bettermorning.createRoutineDraft"
 }
 

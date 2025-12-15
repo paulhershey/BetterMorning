@@ -16,6 +16,13 @@ struct DataView: View {
     /// The routine pending deletion (nil if no confirmation is showing)
     @State private var routinePendingDeletion: Routine?
     
+    /// Whether to show the Settings sheet
+    @State private var showingSettings: Bool = false
+    
+    /// State for Create Routine flow
+    @State private var showingCreateRoutine: Bool = false
+    @State private var showingPaywall: Bool = false
+    
     /// Whether to show the delete confirmation alert
     private var showingDeleteConfirmation: Binding<Bool> {
         Binding(
@@ -39,6 +46,25 @@ struct DataView: View {
         }
         .onAppear {
             viewModel.refreshData()
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+                .presentationDetents([.height(298)])
+                .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showingCreateRoutine) {
+            CreateRoutineView()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
+        }
+        .sheet(isPresented: $showingPaywall) {
+            PaywallView(onPurchaseComplete: {
+                showingPaywall = false
+                showingCreateRoutine = true
+            })
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
         }
         .alert("Delete Routine?", isPresented: showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) {
@@ -80,12 +106,10 @@ struct DataView: View {
                 Header(
                     title: "Data",
                     settingsAction: {
-                        // TODO: Navigate to settings
-                        print("Settings tapped")
+                        showingSettings = true
                     },
                     createAction: {
-                        // TODO: Create custom routine
-                        print("Create tapped")
+                        handleCreateAction()
                     }
                 )
                 .padding(.top, .sp8)
@@ -118,8 +142,7 @@ struct DataView: View {
                         
                         // Create Button (branded/purple)
                         TextButton("Create", variant: .branded) {
-                            // TODO: Trigger custom routine creation
-                            print("Create tapped")
+                            handleCreateAction()
                         }
                     }
                 }
@@ -139,12 +162,10 @@ struct DataView: View {
             Header(
                 title: "Data",
                 settingsAction: {
-                    // TODO: Navigate to settings
-                    print("Settings tapped")
+                    showingSettings = true
                 },
                 createAction: {
-                    // TODO: Create custom routine
-                    print("Create tapped")
+                    handleCreateAction()
                 }
             )
             .padding(.top, .sp8)
@@ -199,6 +220,16 @@ struct DataView: View {
         case .delete:
             // Show confirmation dialog instead of deleting immediately
             routinePendingDeletion = routine
+        }
+    }
+    
+    // MARK: - Create Action
+    
+    private func handleCreateAction() {
+        if AppStateManager.shared.hasPurchasedPremium {
+            showingCreateRoutine = true
+        } else {
+            showingPaywall = true
         }
     }
 }
