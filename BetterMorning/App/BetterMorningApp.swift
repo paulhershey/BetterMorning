@@ -53,6 +53,12 @@ struct BetterMorningApp: App {
         
         // 2. Perform midnight check (finalizes previous day if needed)
         AppStateManager.shared.performMidnightCheckIfNeeded(modelContext: context)
+        
+        // 3. Verify purchase entitlements on app launch
+        // This ensures purchases are restored from StoreKit even after reinstall
+        Task {
+            await StoreManager.shared.checkCurrentEntitlements()
+        }
     }
 }
 

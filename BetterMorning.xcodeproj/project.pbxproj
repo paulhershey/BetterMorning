@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		91F925E52EEFAF6B009027D4 /* Custom Routines Unlock.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 91F925E42EEFAF6B009027D4 /* Custom Routines Unlock.storekit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		91A998492EE398AD002ED92E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		91A998392EE398AB002ED92E /* BetterMorning.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BetterMorning.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		91A998482EE398AD002ED92E /* BetterMorningTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BetterMorningTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		91A998522EE398AD002ED92E /* BetterMorningUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BetterMorningUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		91F925E42EEFAF6B009027D4 /* Custom Routines Unlock.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Custom Routines Unlock.storekit"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -88,6 +93,7 @@
 		91A998302EE398AB002ED92E = {
 			isa = PBXGroup;
 			children = (
+				91F925E42EEFAF6B009027D4 /* Custom Routines Unlock.storekit */,
 				91A9983B2EE398AB002ED92E /* BetterMorning */,
 				91A9984B2EE398AD002ED92E /* BetterMorningTests */,
 				91A998552EE398AD002ED92E /* BetterMorningUITests */,
@@ -225,6 +231,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				91F925E52EEFAF6B009027D4 /* Custom Routines Unlock.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
