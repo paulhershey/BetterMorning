@@ -14,6 +14,7 @@ struct SettingsView: View {
     
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
     
     /// ViewModel managing settings state and logic
     @State private var viewModel = SettingsViewModel()
@@ -60,10 +61,17 @@ struct SettingsView: View {
             }
             .padding(.bottom, .sp32)
         }
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(Color.backgroundSecondary)
         .onAppear {
             // Refresh notification permission status when sheet appears
             viewModel.checkNotificationPermissions()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            // Re-check permissions when returning from Settings app
+            // This handles the case where user enables notifications in System Settings
+            if newPhase == .active {
+                viewModel.checkNotificationPermissions()
+            }
         }
         .alert("Reset All Data?", isPresented: $showingResetConfirmation) {
             Button("Cancel", role: .cancel) {}
@@ -79,29 +87,7 @@ struct SettingsView: View {
     // MARK: - Header View
     
     private var headerView: some View {
-        ZStack {
-            // Title centered
-            Text("Settings")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(Color.colorNeutralBlack)
-            
-            // Close button on the right
-            HStack {
-                Spacer()
-                
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 30))
-                        .foregroundStyle(Color(UIColor.tertiaryLabel))
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, .sp16)
-        .padding(.top, .sp16)
-        .padding(.bottom, .sp24)
+        SheetHeader(title: "Settings", onDismiss: { dismiss() })
     }
 }
 

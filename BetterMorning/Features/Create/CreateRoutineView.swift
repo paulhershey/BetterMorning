@@ -69,7 +69,8 @@ struct CreateRoutineView: View {
         }
         .onAppear {
             // Auto-focus title on appear
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            Task {
+                try? await Task.sleep(for: .milliseconds(500))
                 isTitleFocused = true
             }
         }
@@ -94,10 +95,11 @@ struct CreateRoutineView: View {
                 handleDismiss()
             } label: {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 30))
-                    .foregroundStyle(Color(UIColor.tertiaryLabel))
+                    .font(.system(size: .iconLarge))
+                    .foregroundStyle(Color.colorNeutralGrey2)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Close")
         }
         .padding(.horizontal, .sp16)
         .padding(.top, .sp16)
@@ -172,6 +174,9 @@ struct CreateRoutineView: View {
                 .foregroundStyle(Color.colorNeutralBlack)
                 .lineLimit(2)
                 .focused($isTaskTitleFocused)
+                .submitLabel(.next)
+                .textInputAutocapitalization(.sentences)
+                .autocorrectionDisabled(false)
                 .onChange(of: currentTaskTitle) { _, newValue in
                     // Enforce 70 char limit
                     if newValue.count > CreateRoutineViewModel.maxTaskTitleCharacters {
@@ -284,7 +289,7 @@ struct CreateRoutineView: View {
             Spacer()
             
             Image(systemName: "checklist")
-                .font(.system(size: 48))
+                .font(.system(size: .sp48))
                 .foregroundStyle(Color.colorNeutralGrey1)
             
             Text("No tasks yet")
@@ -398,7 +403,7 @@ struct CreateRoutineView: View {
     private var maxTasksBanner: some View {
         HStack(spacing: .sp12) {
             Image(systemName: "info.circle.fill")
-                .font(.system(size: 20))
+                .font(.system(size: .iconSmall))
                 .foregroundStyle(Color.brandPrimary)
             
             Text("Maximum of \(CreateRoutineViewModel.maxTasks) tasks reached")
@@ -427,7 +432,8 @@ struct CreateRoutineView: View {
         currentTaskTitle = ""
         currentTaskTime = defaultTaskTime()
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        Task {
+            try? await Task.sleep(for: .milliseconds(100))
             isTaskTitleFocused = true
         }
     }
@@ -455,7 +461,8 @@ struct CreateRoutineView: View {
         currentTaskTime = defaultTaskTime()
         currentStep = .enteringTaskTitle
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        Task {
+            try? await Task.sleep(for: .milliseconds(100))
             isTaskTitleFocused = true
         }
     }

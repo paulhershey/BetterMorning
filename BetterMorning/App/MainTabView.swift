@@ -8,13 +8,15 @@
 import SwiftUI
 
 struct MainTabView: View {
-    @State private var selectedTab: AppTab = .explore
+    
+    /// Reference to the observable app state manager for tab selection
+    @Bindable private var appState = AppStateManager.shared
     
     var body: some View {
         ZStack(alignment: .bottom) {
             // Content based on selected tab
             Group {
-                switch selectedTab {
+                switch appState.selectedTab {
                 case .explore:
                     NavigationStack {
                         ExploreView()
@@ -31,7 +33,7 @@ struct MainTabView: View {
             }
             
             // Floating Tab Bar
-            TabBar(selectedTab: $selectedTab)
+            TabBar(selectedTab: $appState.selectedTab)
                 .padding(.bottom, .sp8)
         }
     }

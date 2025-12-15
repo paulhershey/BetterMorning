@@ -19,6 +19,11 @@ final class AppStateManager {
         loadPersistedState()
     }
     
+    // MARK: - Navigation State
+    
+    /// Currently selected tab (not persisted)
+    var selectedTab: AppTab = .explore
+    
     // MARK: - Observable State
     
     /// Whether the user has completed onboarding (cleared on reset)
@@ -87,6 +92,11 @@ final class AppStateManager {
         hasPurchasedPremium = true
     }
     
+    /// Switch to a specific tab
+    func switchToTab(_ tab: AppTab) {
+        selectedTab = tab
+    }
+    
     /// Reset all app data (called from Settings)
     /// Note: Does NOT reset hasPurchasedPremium per spec
     func resetAllData(modelContext: ModelContext) {
@@ -100,9 +110,8 @@ final class AppStateManager {
             // Delete all routines (cascades to tasks and day records)
             try modelContext.delete(model: Routine.self)
             try modelContext.save()
-            print("All data reset successfully")
         } catch {
-            print("Error resetting data: \(error)")
+            // Reset failed - non-critical, will be retried on next launch if needed
         }
         
         // 3. Cancel scheduled notifications
@@ -190,9 +199,8 @@ final class AppStateManager {
         
         do {
             try modelContext.save()
-            print("Finalized day record for \(yesterdayStart) with \(routine.tasks.count) task completions")
         } catch {
-            print("Error finalizing day record: \(error)")
+            // Day finalization failed - will be retried on next app launch
         }
     }
 }

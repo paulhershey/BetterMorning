@@ -90,12 +90,12 @@ struct PaywallView: View {
                 successOverlay
             }
         }
-        .alert("Purchase Error", isPresented: $showingError) {
+        .alert(errorMessage == "No previous purchases found to restore." ? "No Purchases Found" : "Purchase Error", isPresented: $showingError) {
             Button("OK", role: .cancel) {
                 errorMessage = nil
             }
         } message: {
-            Text(errorMessage ?? "An unknown error occurred.")
+            Text(errorMessage ?? "Something went wrong. Please try again.")
         }
         .onAppear {
             // Fetch products if not already loaded
@@ -123,7 +123,7 @@ struct PaywallView: View {
                     .foregroundStyle(Color.colorNeutralBlack)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
+            .frame(height: .sp56)
             .background(Color.brandSecondary)
             .clipShape(Capsule())
         }
@@ -148,7 +148,7 @@ struct PaywallView: View {
                         .frame(width: 80, height: 80)
                     
                     Image(systemName: "checkmark")
-                        .font(.system(size: 36, weight: .bold))
+                        .font(.system(size: .iconXLarge, weight: .bold))
                         .foregroundStyle(Color.colorNeutralBlack)
                 }
                 .scaleEffect(showingSuccess ? 1 : 0.5)
@@ -174,7 +174,7 @@ struct PaywallView: View {
     private var headerView: some View {
         ZStack {
             Text("Premium")
-                .font(.system(size: 17, weight: .semibold))
+                .style(.bodyStrong)
                 .foregroundStyle(Color.colorNeutralBlack)
             
             HStack {
@@ -184,11 +184,12 @@ struct PaywallView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 30))
-                        .foregroundStyle(Color(UIColor.tertiaryLabel))
+                        .font(.system(size: .iconLarge))
+                        .foregroundStyle(Color.colorNeutralGrey2)
                 }
                 .buttonStyle(.plain)
                 .disabled(isLoading || showingSuccess)
+                .accessibilityLabel("Close")
             }
         }
         .padding(.horizontal, .sp16)
@@ -207,13 +208,17 @@ struct PaywallView: View {
                 isLoading = false
                 
                 if success {
+                    // Haptic feedback for success
+                    HapticManager.success()
+                    
                     // Show success animation
                     withAnimation(.easeInOut(duration: 0.3)) {
                         showingSuccess = true
                     }
                     
                     // Dismiss after delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(1500))
                         dismiss()
                         onPurchaseComplete()
                     }
@@ -244,13 +249,17 @@ struct PaywallView: View {
                 isLoading = false
                 
                 if success {
+                    // Haptic feedback for success
+                    HapticManager.success()
+                    
                     // Show success animation for restore too
                     withAnimation(.easeInOut(duration: 0.3)) {
                         showingSuccess = true
                     }
                     
                     // Dismiss after delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(1500))
                         dismiss()
                         onPurchaseComplete()
                     }
@@ -267,9 +276,7 @@ struct PaywallView: View {
 // MARK: - Preview
 
 #Preview("Paywall") {
-    PaywallView(onPurchaseComplete: {
-        print("Purchase complete!")
-    })
+    PaywallView(onPurchaseComplete: {})
 }
 
 #Preview("Paywall - Success State") {

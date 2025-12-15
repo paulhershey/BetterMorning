@@ -81,10 +81,10 @@ struct DateCard: View {
                     .style(.bodyLarge)
                     .foregroundStyle(variant.textColor)
             }
-            // UPDATED: No horizontal padding, and tighter frame width (52pt)
-            // This ensures the total width is exactly 52pt, not 60 + padding.
+            // DateCard sizing: 56pt width to show ~5 cards with 6th peeking
+            // Per Func Spec 8.2: "Displays ~5 days fully, with 6th partially visible"
             .padding(.vertical, .sp16)
-            .frame(width: 60)
+            .frame(width: 56)
             .background(variant.backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: .radiusSmall))
             .overlay(

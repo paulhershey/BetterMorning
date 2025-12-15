@@ -169,9 +169,8 @@ struct RoutineView: View {
                     notificationsEnabled = false
                 }
                 
-                if let error = error {
-                    print("Notification permission error: \(error.localizedDescription)")
-                }
+                // Error handling - notification permission request failed silently
+                _ = error
             }
         }
     }
@@ -210,7 +209,7 @@ struct RoutineView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 594)
+                    .frame(height: .heroImageHeight)
                     .clipped()
                 
                 Spacer()
@@ -233,7 +232,7 @@ struct RoutineView: View {
                 
                 Spacer()
                 
-                // Info Block Content
+                // Info Block Content with entrance animation
                 VStack(spacing: .sp16) {
                     Text("Start your mornings with intention")
                         .style(.heading1)
@@ -253,7 +252,7 @@ struct RoutineView: View {
                             variant: .primary,
                             iconName: "icon_arrow_left_white"
                         ) {
-                            print("Explore tapped")
+                            AppStateManager.shared.switchToTab(.explore)
                         }
                         
                         // Create Button (branded/purple)
@@ -263,9 +262,10 @@ struct RoutineView: View {
                     }
                 }
                 .padding(.horizontal, .sp24)
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
                 
                 Spacer()
-                    .frame(height: 120) // Space for tab bar
+                    .frame(height: .tabBarSpacerHeight)
             }
         }
     }
@@ -280,7 +280,7 @@ struct RoutineView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 594)
+                    .frame(height: .heroImageHeight)
                     .clipped()
                 
                 Spacer()
@@ -327,7 +327,7 @@ struct RoutineView: View {
                 .padding(.horizontal, .sp24)
                 
                 Spacer()
-                    .frame(height: 120) // Space for tab bar
+                    .frame(height: .tabBarSpacerHeight)
             }
         }
     }
@@ -377,7 +377,7 @@ struct RoutineView: View {
                     }
                     .padding(.top, .sp8)
                 }
-                .padding(.bottom, 120) // Space for tab bar
+                .padding(.bottom, .tabBarSpacerHeight)
             }
         }
         .onAppear {
@@ -531,7 +531,7 @@ private struct PastDayPreviewWrapper: View {
                         HStack(spacing: .sp4) {
                             Image("icon_check_black")
                                 .resizable()
-                                .frame(width: 16, height: 16)
+                                .frame(width: .iconXSmall, height: .iconXSmall)
                             Text("Completed")
                                 .style(.dataSmall)
                                 .foregroundStyle(Color.colorNeutralGrey2)
@@ -540,7 +540,7 @@ private struct PastDayPreviewWrapper: View {
                         HStack(spacing: .sp4) {
                             Image("icon_close_red")
                                 .resizable()
-                                .frame(width: 16, height: 16)
+                                .frame(width: .iconXSmall, height: .iconXSmall)
                             Text("Missed")
                                 .style(.dataSmall)
                                 .foregroundStyle(Color.colorNeutralGrey2)
@@ -570,7 +570,7 @@ private struct PastDayPreviewWrapper: View {
                         .padding(.horizontal, .sp24)
                         .padding(.top, .sp24)
                 }
-                .padding(.bottom, 120)
+                .padding(.bottom, .tabBarSpacerHeight)
             }
         }
         .background(Color.colorNeutralWhite)
@@ -600,9 +600,7 @@ private struct PastDayTaskItemPreview: View {
             title: title,
             variant: $variant,
             action: {
-                // This should NOT trigger for past days
-                // The .failed variant is non-interactive
-                print("⚠️ This should not print - past day tasks are read-only")
+                // Past day tasks are read-only (no action)
             }
         )
     }

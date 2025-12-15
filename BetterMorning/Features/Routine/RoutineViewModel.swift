@@ -218,8 +218,7 @@ final class RoutineViewModel {
     func toggleTaskCompletion(task: RoutineTask) {
         // Only allow toggling for today's date
         guard isSelectedDateToday else {
-            print("Cannot toggle task completion for past or future dates")
-            return
+            return // Past and future dates are read-only
         }
         
         // Delegate to RoutineManager for persistence

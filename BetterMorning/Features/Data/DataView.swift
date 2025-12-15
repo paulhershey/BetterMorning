@@ -93,7 +93,7 @@ struct DataView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 594)
+                    .frame(height: .heroImageHeight)
                     .clipped()
                 
                 Spacer()
@@ -116,7 +116,7 @@ struct DataView: View {
                 
                 Spacer()
                 
-                // Info Block Content
+                // Info Block Content with entrance animation
                 VStack(spacing: .sp16) {
                     Text("Nothing to show yet")
                         .style(.heading1)
@@ -136,8 +136,7 @@ struct DataView: View {
                             variant: .primary,
                             iconName: "icon_arrow_left_white"
                         ) {
-                            // TODO: Switch to Explore tab
-                            print("Explore tapped")
+                            AppStateManager.shared.switchToTab(.explore)
                         }
                         
                         // Create Button (branded/purple)
@@ -147,9 +146,10 @@ struct DataView: View {
                     }
                 }
                 .padding(.horizontal, .sp24)
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
                 
                 Spacer()
-                    .frame(height: 120) // Space for tab bar
+                    .frame(height: .tabBarSpacerHeight)
             }
         }
     }
@@ -170,7 +170,7 @@ struct DataView: View {
             )
             .padding(.top, .sp8)
             
-            // Scrollable list of Data Cards
+            // Scrollable list of Data Cards with pull-to-refresh
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: .sp24) {
                     ForEach(viewModel.sortedRoutines) { routine in
@@ -179,7 +179,11 @@ struct DataView: View {
                 }
                 .padding(.horizontal, .sp24)
                 .padding(.top, .sp24)
-                .padding(.bottom, 120) // Space for tab bar
+                .padding(.bottom, .tabBarSpacerHeight)
+            }
+            .refreshable {
+                HapticManager.lightTap()
+                viewModel.refreshData()
             }
         }
     }
@@ -216,9 +220,11 @@ struct DataView: View {
     private func handleCardAction(_ action: DataCardAction, for routine: Routine) {
         switch action {
         case .restart:
+            HapticManager.success()
             viewModel.restartRoutine(routine)
         case .delete:
             // Show confirmation dialog instead of deleting immediately
+            HapticManager.warning()
             routinePendingDeletion = routine
         }
     }
@@ -257,8 +263,8 @@ private struct DataViewWithMockData: View {
                 // Header
                 Header(
                     title: "Data",
-                    settingsAction: { print("Settings") },
-                    createAction: { print("Create") }
+                    settingsAction: {},
+                    createAction: {}
                 )
                 .padding(.top, .sp8)
                 
@@ -272,8 +278,8 @@ private struct DataViewWithMockData: View {
                             dateRange: "Dec 8-14",
                             dataPoints: [4, 6, 5, 6, 6, 5, 0],
                             totalTasks: 7,
-                            onAction: { action in print("Action: \(action)") },
-                            onPage: { direction in print("Navigate: \(direction)") }
+                            onAction: { _ in },
+                            onPage: { _ in }
                         )
                         
                         // Mock Previous Routine Card
@@ -283,13 +289,13 @@ private struct DataViewWithMockData: View {
                             dateRange: "Nov 16-22",
                             dataPoints: [3, 4, 5, 4, 5, 3, 2],
                             totalTasks: 5,
-                            onAction: { action in print("Action: \(action)") },
-                            onPage: { direction in print("Navigate: \(direction)") }
+                            onAction: { _ in },
+                            onPage: { _ in }
                         )
                     }
                     .padding(.horizontal, .sp24)
                     .padding(.top, .sp24)
-                    .padding(.bottom, 120)
+                    .padding(.bottom, .tabBarSpacerHeight)
                 }
             }
         }

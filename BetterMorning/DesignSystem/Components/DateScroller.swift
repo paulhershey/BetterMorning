@@ -23,31 +23,51 @@ struct DateScroller: View {
     }
     
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: .sp16) {
-                ForEach(dates, id: \.self) { date in
-                    DateCard(
-                        dayName: dayName(from: date),
-                        dateNumber: dayNumber(from: date),
-                        variant: variant(for: date),
-                        action: {
-                            let today = Date()
-                            
-                            // UPDATED LOGIC:
-                            // Only select if the date is Today or in the Past.
-                            // If it's a Future date (Rest state), ignore the tap.
-                            if date <= today || calendar.isDate(date, inSameDayAs: today) {
-                                withAnimation {
-                                    selectedDate = date
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: .sp12) {
+                    ForEach(dates, id: \.self) { date in
+                        DateCard(
+                            dayName: dayName(from: date),
+                            dateNumber: dayNumber(from: date),
+                            variant: variant(for: date),
+                            action: {
+                                let today = Date()
+                                
+                                // Only select if the date is Today or in the Past.
+                                // If it's a Future date (Rest state), ignore the tap.
+                                if date <= today || calendar.isDate(date, inSameDayAs: today) {
+                                    HapticManager.selectionChanged()
+                                    withAnimation {
+                                        selectedDate = date
+                                    }
                                 }
                             }
-                        }
-                    )
+                        )
+                        .id(date) // ID for scroll positioning
+                    }
+                }
+                // Per Func Spec 8.2: ~5 days fully visible, 6th partially visible
+                // 56pt card + 12pt spacing = 68pt per card
+                // 16pt horizontal padding allows ~5.3 cards to show on iPhone
+                .padding(.vertical, .sp4)
+                .padding(.horizontal, .sp16)
+            }
+            .onAppear {
+                // Scroll to selected date (today) when view appears
+                Task {
+                    try? await Task.sleep(for: .milliseconds(100))
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        proxy.scrollTo(selectedDate, anchor: .center)
+                    }
                 }
             }
-            // Fix: Add vertical padding so borders don't get cut off
-            .padding(.vertical, .sp4)
-            .padding(.horizontal, .sp24)
+            .onChange(of: selectedDate) { _, newDate in
+                // Scroll to newly selected date
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    proxy.scrollTo(newDate, anchor: .center)
+                }
+            }
         }
     }
     

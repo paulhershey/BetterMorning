@@ -53,6 +53,20 @@ enum TaskItemVariant {
             return nil
         }
     }
+    
+    /// Accessibility value for VoiceOver
+    var accessibilityValue: String {
+        switch self {
+        case .active:
+            return "Current task"
+        case .completed:
+            return "Completed"
+        case .failed:
+            return "Not completed"
+        case .rest:
+            return "Not started"
+        }
+    }
 }
 
 // MARK: - Task Item View
@@ -83,9 +97,14 @@ struct TaskItem: View {
                 cardContent
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("\(title) at \(time)")
+            .accessibilityValue(variant.accessibilityValue)
+            .accessibilityHint(variant == .completed ? "Double tap to mark as not done" : "Double tap to mark as done")
         } else {
             // Display Only (No Button wrapper)
             cardContent
+                .accessibilityLabel("\(title) at \(time)")
+                .accessibilityValue(variant.accessibilityValue)
         }
     }
     
@@ -141,9 +160,13 @@ struct TaskItem: View {
     
     // MARK: - Toggle Logic
     private func toggleState() {
-        // 1. Trigger Haptic Feedback
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        generator.impactOccurred()
+        // 1. Trigger Haptic + Audio Feedback
+        if variant == .rest {
+            HapticManager.success() // Stronger feedback for completing
+            SoundManager.playTaskComplete() // Audio feedback for completion
+        } else {
+            HapticManager.lightTap() // Lighter feedback for un-completing
+        }
         
         // 2. Perform Toggle (Strictly Rest <-> Completed)
         withAnimation(.snappy) {

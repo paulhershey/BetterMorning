@@ -23,6 +23,18 @@ enum AppTab: String, CaseIterable {
             return "icon_data_black"
         }
     }
+    
+    /// Accessibility label for VoiceOver
+    var accessibilityLabel: String {
+        switch self {
+        case .explore:
+            return "Explore routines"
+        case .routine:
+            return "Daily routine"
+        case .data:
+            return "Progress data"
+        }
+    }
 }
 
 // MARK: - Tab Bar View
@@ -51,6 +63,7 @@ struct TabBar: View {
         let isSelected = selectedTab == tab
         
         Button {
+            HapticManager.selectionChanged()
             withAnimation(.snappy) {
                 selectedTab = tab
             }
@@ -76,6 +89,8 @@ struct TabBar: View {
             .frame(width: .sp104, height: 56)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(tab.accessibilityLabel)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

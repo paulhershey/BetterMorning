@@ -119,12 +119,9 @@ final class StoreManager {
             
             if let premium = products.first {
                 self.premiumProduct = premium
-                print("✅ Fetched product: \(premium.displayName) - \(premium.displayPrice)")
-            } else {
-                print("⚠️ Premium product not found")
             }
         } catch {
-            print("❌ Failed to fetch products: \(error)")
+            // Product fetch failed - will retry when needed
         }
     }
     
@@ -156,17 +153,14 @@ final class StoreManager {
                 await transaction.finish()
                 
                 purchaseState = .purchased
-                print("✅ Purchase successful!")
                 return true
                 
             case .userCancelled:
                 purchaseState = .failed(StoreError.userCancelled)
-                print("ℹ️ User cancelled purchase")
                 return false
                 
             case .pending:
                 purchaseState = .failed(StoreError.pending)
-                print("ℹ️ Purchase pending (Ask to Buy)")
                 return false
                 
             @unknown default:
@@ -175,7 +169,6 @@ final class StoreManager {
             }
         } catch {
             purchaseState = .failed(error)
-            print("❌ Purchase failed: \(error)")
             return false
         }
     }
@@ -197,16 +190,13 @@ final class StoreManager {
             
             if hasEntitlement {
                 purchaseState = .restored
-                print("✅ Purchase restored!")
                 return true
             } else {
                 purchaseState = .idle
-                print("ℹ️ No purchases to restore")
                 return false
             }
         } catch {
             purchaseState = .failed(error)
-            print("❌ Restore failed: \(error)")
             return false
         }
     }
@@ -228,17 +218,15 @@ final class StoreManager {
                     // Verify it hasn't been revoked (refunded)
                     if transaction.revocationDate == nil {
                         await grantPremiumAccess()
-                        print("✅ Premium entitlement verified")
                         return true
                     } else {
                         // Transaction was revoked (refund)
                         await revokePremiumAccess()
-                        print("⚠️ Premium was refunded - access revoked")
                         return false
                     }
                 }
             } catch {
-                print("⚠️ Failed to verify transaction: \(error)")
+                // Transaction verification failed
             }
         }
         
@@ -247,7 +235,6 @@ final class StoreManager {
         // This handles refunds that occurred while the app wasn't running
         if AppStateManager.shared.hasPurchasedPremium {
             await revokePremiumAccess()
-            print("⚠️ No premium entitlement found - access revoked (possible refund)")
         }
         
         return false
@@ -279,7 +266,7 @@ final class StoreManager {
                     // Finish the transaction
                     await transaction.finish()
                 } catch {
-                    print("⚠️ Transaction verification failed: \(error)")
+                    // Transaction verification failed
                 }
             }
         }
@@ -308,7 +295,6 @@ final class StoreManager {
     @MainActor
     private func revokePremiumAccess() async {
         AppStateManager.shared.hasPurchasedPremium = false
-        print("🔒 Premium access revoked")
     }
     
     // MARK: - Reset State

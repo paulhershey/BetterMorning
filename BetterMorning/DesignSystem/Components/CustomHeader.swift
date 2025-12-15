@@ -45,7 +45,9 @@ struct CustomHeader: View {
                     .lineLimit(2)
                     // Note: TextField truncation (...) only appears when not focused in some iOS versions,
                     // but lineLimit ensures it never grows beyond 2 lines height.
-                    .textInputAutocapitalization(.sentences)
+                    .textInputAutocapitalization(.words)
+                    .submitLabel(.done)
+                    .autocorrectionDisabled(false)
                     .onChange(of: title) { oldValue, newValue in
                         if newValue.count > 20 {
                             title = String(newValue.prefix(20))

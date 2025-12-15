@@ -163,17 +163,15 @@ final class CreateRoutineViewModel {
         do {
             let data = try JSONEncoder().encode(draft)
             UserDefaults.standard.set(data, forKey: UserDefaultsKeys.createRoutineDraft)
-            print("📝 Draft saved: \"\(title)\" with \(tasks.count) tasks")
         } catch {
-            print("Error saving draft: \(error)")
+            // Draft save failed silently - non-critical
         }
     }
     
     /// Loads any existing draft from UserDefaults
     func loadDraft() {
         guard let data = UserDefaults.standard.data(forKey: UserDefaultsKeys.createRoutineDraft) else {
-            print("📝 No existing draft found")
-            return
+            return // No existing draft
         }
         
         do {
@@ -181,9 +179,8 @@ final class CreateRoutineViewModel {
             self.title = draft.title
             self.tasks = draft.tasks
             sortTasksByTime()
-            print("📝 Draft restored: \"\(title)\" with \(tasks.count) tasks")
         } catch {
-            print("Error loading draft: \(error)")
+            // Draft corrupted - clear it
             clearDraft()
         }
     }
@@ -194,7 +191,6 @@ final class CreateRoutineViewModel {
         title = ""
         tasks = []
         validationError = nil
-        print("📝 Draft cleared")
     }
     
     // MARK: - Finalization
@@ -258,9 +254,8 @@ final class CreateRoutineViewModel {
         // Save
         do {
             try modelContext.save()
-            print("✅ Custom routine created: \"\(trimmedTitle)\" with \(tasks.count) tasks")
             
-            // Schedule notifications (stub for now)
+            // Schedule notifications for the new routine
             RoutineManager.shared.scheduleNotificationsForRoutine(routine)
             
             // Clear the draft
@@ -268,7 +263,6 @@ final class CreateRoutineViewModel {
             
             return true
         } catch {
-            print("Error saving routine: \(error)")
             validationError = "Failed to save routine. Please try again."
             return false
         }

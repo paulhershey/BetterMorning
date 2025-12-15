@@ -267,8 +267,6 @@ final class DataViewModel {
         
         // Refresh data to update the UI
         refreshData()
-        
-        print("✅ Restarted routine: \(routine.name)")
     }
     
     /// Delete a routine and all its data
@@ -286,8 +284,6 @@ final class DataViewModel {
         
         // Refresh data to update the UI
         refreshData()
-        
-        print("🗑️ Deleted routine from DataViewModel")
     }
 }
 

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import UserNotifications
 
 // MARK: - Onboarding Step Data
 
@@ -151,21 +150,11 @@ final class OnboardingViewModel {
     }
     
     /// Request notification permissions (Step 3)
+    /// Uses NotificationManager for centralized permission handling
     private func requestNotificationPermissions() {
-        let center = UNUserNotificationCenter.current()
-        
-        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            // Update AppStateManager on main thread
-            DispatchQueue.main.async {
-                AppStateManager.shared.notificationsEnabled = granted
-                
-                if let error = error {
-                    print("Notification permission error: \(error.localizedDescription)")
-                }
-                
-                // Advance to step 4 regardless of permission result
-                self.advanceToNextStep()
-            }
+        NotificationManager.shared.requestPermission { _ in
+            // Advance to step 4 regardless of permission result
+            self.advanceToNextStep()
         }
     }
     

@@ -12,6 +12,7 @@ extension Color {
     static let colorNeutralWhite = Color(hex: "#FFFFFF")
     static let colorNeutralGrey1 = Color(hex: "#E3E3E3")
     static let colorNeutralGrey2 = Color(hex: "#858585")
+    static let colorNeutralGrey3 = Color(hex: "#F5F5F5") // Light background
     static let colorNeutralBlack = Color(hex: "#000000")
     
     static let brandPrimary = Color(hex: "#665AC0")
@@ -20,6 +21,11 @@ extension Color {
     
     static let utilityDanger = Color(hex: "#FB748A")
     static let utilitySuccess = Color(hex: "#74FBA6")
+    
+    // Semantic colors for backgrounds
+    static let backgroundPrimary = colorNeutralWhite
+    static let backgroundSecondary = colorNeutralGrey3
+    static let backgroundTertiary = colorNeutralGrey1
 }
 
 // MARK: - 2. Typography System V2
@@ -101,6 +107,24 @@ extension CGFloat {
     static let radiusFull: CGFloat = 999
 }
 
+// MARK: - 5. Icon Sizes
+extension CGFloat {
+    static let iconXSmall: CGFloat = 16
+    static let iconSmall: CGFloat = 20
+    static let iconMedium: CGFloat = 24
+    static let iconLarge: CGFloat = 30
+    static let iconXLarge: CGFloat = 40
+}
+
+// MARK: - 6. Layout Constants
+extension CGFloat {
+    /// Height for background hero images in empty states
+    static let heroImageHeight: CGFloat = 594
+    
+    /// Bottom padding/spacer height to account for floating tab bar
+    static let tabBarSpacerHeight: CGFloat = 120
+}
+
 struct AppShadows {
     // Your specific drop shadow from variables.json
     static let `default` = ShadowStyle(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
@@ -119,7 +143,7 @@ extension View {
     }
 }
 
-// MARK: - 5. Hex Code Support
+// MARK: - 7. Hex Code Support
 extension Color {
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

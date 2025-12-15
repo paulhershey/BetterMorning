@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import UserNotifications
 
 @Observable
 final class SettingsViewModel {
@@ -41,20 +40,18 @@ final class SettingsViewModel {
     /// Per Functional Spec 9.2: "Any in-app toggles related to notifications
     /// should appear **off**, reflecting that notifications aren't active."
     func checkNotificationPermissions() {
-        UNUserNotificationCenter.current().getNotificationSettings { [weak self] settings in
-            DispatchQueue.main.async {
-                switch settings.authorizationStatus {
-                case .denied:
-                    self?.systemNotificationsDenied = true
-                    // Per spec: Toggle should appear OFF when system denied
-                    self?.notificationsEnabled = false
-                case .authorized, .provisional, .ephemeral:
-                    self?.systemNotificationsDenied = false
-                case .notDetermined:
-                    self?.systemNotificationsDenied = false
-                @unknown default:
-                    self?.systemNotificationsDenied = false
-                }
+        NotificationManager.shared.checkAuthorizationStatus { [weak self] status in
+            switch status {
+            case .denied:
+                self?.systemNotificationsDenied = true
+                // Per spec: Toggle should appear OFF when system denied
+                self?.notificationsEnabled = false
+            case .authorized, .provisional, .ephemeral:
+                self?.systemNotificationsDenied = false
+            case .notDetermined:
+                self?.systemNotificationsDenied = false
+            @unknown default:
+                self?.systemNotificationsDenied = false
             }
         }
     }
@@ -69,9 +66,9 @@ final class SettingsViewModel {
                 // The toggle will be disabled, but just in case:
                 notificationsEnabled = false
             } else {
-                // Request permission if not yet determined
-                requestNotificationPermission { [weak self] granted in
-                    self?.notificationsEnabled = granted
+                // Request permission via NotificationManager (centralized)
+                NotificationManager.shared.requestPermission { [weak self] granted in
+                    // NotificationManager already updates AppStateManager.notificationsEnabled
                     if !granted {
                         self?.systemNotificationsDenied = true
                     }
@@ -82,20 +79,6 @@ final class SettingsViewModel {
             notificationsEnabled = false
             // Note: We can't actually revoke system permission,
             // we just stop scheduling notifications in-app
-        }
-    }
-    
-    /// Request notification permission from the system
-    private func requestNotificationPermission(completion: @escaping (Bool) -> Void) {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("Error requesting notification permission: \(error)")
-                    completion(false)
-                } else {
-                    completion(granted)
-                }
-            }
         }
     }
     
@@ -111,15 +94,11 @@ final class SettingsViewModel {
     /// Reset all app data (called after confirmation)
     /// - Parameter modelContext: The SwiftData model context
     func performReset(modelContext: ModelContext) {
-        // Cancel all scheduled notifications
-        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
-        print("🔕 Cancelled all notifications")
+        // Cancel all scheduled notifications via NotificationManager
+        NotificationManager.shared.cancelAllNotifications()
         
         // Delegate to AppStateManager for the actual reset
         AppStateManager.shared.resetAllData(modelContext: modelContext)
-        
-        print("🗑️ Reset all data complete")
     }
 }
 

@@ -36,13 +36,14 @@ struct CelebrityDetailView: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: .iconXSmall, weight: .semibold))
                     .foregroundStyle(Color.colorNeutralGrey2)
-                    .frame(width: 30, height: 30)
+                    .frame(width: .iconLarge, height: .iconLarge)
                     .background(Color.colorNeutralGrey1.opacity(0.5))
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Close")
             .padding(.top, .sp16)
             .padding(.trailing, .sp24)
         }
@@ -107,7 +108,7 @@ struct CelebrityDetailView: View {
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .frame(height: 20)
+            .frame(height: .sp24)
             
             // Button container
             VStack {

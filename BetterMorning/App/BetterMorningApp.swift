@@ -59,6 +59,9 @@ struct BetterMorningApp: App {
         Task {
             await StoreManager.shared.checkCurrentEntitlements()
         }
+        
+        // 4. Clear notification badge when app is opened
+        NotificationManager.shared.clearBadge()
     }
 }
 

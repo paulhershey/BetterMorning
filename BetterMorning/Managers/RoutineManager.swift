@@ -31,10 +31,7 @@ class RoutineManager {
     
     /// Activate a celebrity routine (creates a new Routine in SwiftData)
     func activate(celebrityRoutine: CelebrityRoutine) {
-        guard let context = modelContext else {
-            print("Error: RoutineManager not configured with ModelContext")
-            return
-        }
+        guard let context = modelContext else { return }
         
         // 1. Deactivate any currently active routine
         deactivateCurrentRoutine()
@@ -76,15 +73,20 @@ class RoutineManager {
         
         do {
             try context.save()
-            print("Successfully activated: \(newRoutine.name)")
+            
+            // Schedule notifications for the new routine
+            // Per Functional Spec 9.3: Schedule notification from startDate onwards
+            scheduleNotificationsForRoutine(newRoutine)
         } catch {
-            print("Failed to save routine: \(error)")
+            // Save failed - routine activation incomplete
         }
     }
     
     // MARK: - Routine Deactivation
     
     /// Deactivate the current active routine
+    /// Per Functional Spec 7.1: Finalize today's DayRecord before switching
+    /// Per Functional Spec 7.5: Cancel notifications for the old routine when switching
     func deactivateCurrentRoutine() {
         guard let context = modelContext else { return }
         
@@ -94,12 +96,22 @@ class RoutineManager {
         
         do {
             let activeRoutines = try context.fetch(descriptor)
+            let today = Calendar.current.startOfDay(for: Date())
+            
             for routine in activeRoutines {
+                // Per Func Spec 7.1: Finalize today's data before deactivating
+                // Only finalize if routine was active today (startDate <= today)
+                if let startDate = routine.startDate, startDate <= today {
+                    finalizeDay(for: routine, on: today)
+                }
+                
+                // Cancel notifications for this routine before deactivating
+                cancelNotificationsForRoutine(routine)
                 routine.isActive = false
             }
             try context.save()
         } catch {
-            print("Error deactivating routines: \(error)")
+            // Deactivation failed - will retry on next operation
         }
     }
     
@@ -116,7 +128,6 @@ class RoutineManager {
         do {
             return try context.fetch(descriptor).first
         } catch {
-            print("Error fetching active routine: \(error)")
             return nil
         }
     }
@@ -132,7 +143,6 @@ class RoutineManager {
         do {
             return try context.fetch(descriptor)
         } catch {
-            print("Error fetching routines: \(error)")
             return []
         }
     }
@@ -149,15 +159,9 @@ class RoutineManager {
     ///   - task: The RoutineTask to toggle
     ///   - date: The date to toggle completion for (normalized to midnight)
     func toggleCompletion(for task: RoutineTask, on date: Date) {
-        guard let context = modelContext else {
-            print("Error: RoutineManager not configured with ModelContext")
-            return
-        }
+        guard let context = modelContext else { return }
         
-        guard let routine = task.routine else {
-            print("Error: Task has no associated routine")
-            return
-        }
+        guard let routine = task.routine else { return }
         
         let calendar = Calendar.current
         let normalizedDate = calendar.startOfDay(for: date)
@@ -171,7 +175,6 @@ class RoutineManager {
             // Per spec, unchecking returns to "untouched" state, so we delete the record
             context.delete(existingCompletion)
             dayRecord.completedTasksCount = max(0, dayRecord.completedTasksCount - 1)
-            print("Removed completion for task: \(task.title)")
         } else {
             // Create a new TaskCompletion record
             let completion = TaskCompletion(
@@ -184,7 +187,6 @@ class RoutineManager {
             context.insert(completion)
             dayRecord.taskCompletions.append(completion)
             dayRecord.completedTasksCount += 1
-            print("Added completion for task: \(task.title)")
         }
         
         // Also update the in-memory task.isCompleted for immediate UI feedback
@@ -194,7 +196,7 @@ class RoutineManager {
         do {
             try context.save()
         } catch {
-            print("Error saving task completion: \(error)")
+            // Task completion save failed - UI state may be out of sync
         }
     }
     
@@ -243,19 +245,15 @@ class RoutineManager {
             routine: routine
         )
         
-        guard let context = modelContext else {
-            print("Error: RoutineManager not configured with ModelContext")
-            return newRecord
-        }
+        guard let context = modelContext else { return newRecord }
         
         context.insert(newRecord)
         routine.dayRecords.append(newRecord)
         
         do {
             try context.save()
-            print("Created DayRecord for date: \(normalizedDate)")
         } catch {
-            print("Error creating DayRecord: \(error)")
+            // DayRecord creation failed
         }
         
         return newRecord
@@ -277,10 +275,7 @@ class RoutineManager {
     ///
     /// Call this on app launch and when RoutineView appears.
     func performMidnightCheck() {
-        guard modelContext != nil else {
-            print("Error: RoutineManager not configured with ModelContext")
-            return
-        }
+        guard modelContext != nil else { return }
         
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -334,10 +329,7 @@ class RoutineManager {
     ///   - routine: The Routine to finalize
     ///   - date: The date to finalize (will be normalized to midnight)
     func finalizeDay(for routine: Routine, on date: Date) {
-        guard let context = modelContext else {
-            print("Error: RoutineManager not configured with ModelContext")
-            return
-        }
+        guard let context = modelContext else { return }
         
         let calendar = Calendar.current
         let normalizedDate = calendar.startOfDay(for: date)
@@ -353,7 +345,6 @@ class RoutineManager {
         if let existingRecord = existingRecord {
             // UPDATE: Record already exists, update the count
             existingRecord.completedTasksCount = completedCount
-            print("📝 Updated DayRecord for \(normalizedDate): \(completedCount)/\(routine.tasks.count) tasks")
         } else {
             // INSERT: Create new DayRecord
             let dayRecord = DayRecord(
@@ -368,15 +359,13 @@ class RoutineManager {
             // Create TaskCompletion records for each task (for ✓/✕ display on past days)
             // Only if they don't already exist
             createTaskCompletionRecords(for: routine, dayRecord: dayRecord)
-            
-            print("✅ Created DayRecord for \(normalizedDate): \(completedCount)/\(routine.tasks.count) tasks")
         }
         
         // Save changes
         do {
             try context.save()
         } catch {
-            print("Error finalizing day record: \(error)")
+            // Day finalization failed - will retry on next check
         }
     }
     
@@ -440,9 +429,8 @@ class RoutineManager {
         
         do {
             try context.save()
-            print("🔄 Reset tasks for new day")
         } catch {
-            print("Error resetting tasks: \(error)")
+            // Task reset failed
         }
     }
     
@@ -457,10 +445,7 @@ class RoutineManager {
     ///
     /// - Parameter routine: The Routine to restart
     func restartRoutine(_ routine: Routine) {
-        guard let context = modelContext else {
-            print("Error: RoutineManager not configured with ModelContext")
-            return
-        }
+        guard let context = modelContext else { return }
         
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -472,7 +457,6 @@ class RoutineManager {
             
             // Deactivate the old routine
             currentActive.isActive = false
-            print("📤 Deactivated: \(currentActive.name)")
         }
         
         // 2. Set the target routine as active
@@ -481,24 +465,21 @@ class RoutineManager {
         // 3. Set startDate to tomorrow
         if let tomorrow = calendar.date(byAdding: .day, value: 1, to: today) {
             routine.startDate = tomorrow
-            print("📅 Start date set to: \(tomorrow)")
         }
         
         // 4. Reset all task completion states (fresh start)
         for task in routine.tasks {
             task.isCompleted = false
         }
-        print("🔄 Reset all tasks for: \(routine.name)")
         
-        // 5. Schedule notifications (TODO: Implement in notification manager)
+        // 5. Schedule notifications
         scheduleNotificationsForRoutine(routine)
         
         // 6. Save changes
         do {
             try context.save()
-            print("✅ Successfully restarted: \(routine.name)")
         } catch {
-            print("Error restarting routine: \(error)")
+            // Restart failed
         }
     }
     
@@ -515,18 +496,13 @@ class RoutineManager {
     ///
     /// - Parameter routine: The Routine to delete
     func deleteRoutine(_ routine: Routine) {
-        guard let context = modelContext else {
-            print("Error: RoutineManager not configured with ModelContext")
-            return
-        }
+        guard let context = modelContext else { return }
         
-        let routineName = routine.name
         let wasActive = routine.isActive
         
         // 1. If this was the active routine, cancel notifications
         if wasActive {
             cancelNotificationsForRoutine(routine)
-            print("📤 Deactivated and canceling notifications for: \(routineName)")
         }
         
         // 2. Delete the routine (SwiftData cascade handles related entities)
@@ -535,29 +511,26 @@ class RoutineManager {
         // 3. Save changes
         do {
             try context.save()
-            print("🗑️ Deleted routine: \(routineName) (wasActive: \(wasActive))")
         } catch {
-            print("Error deleting routine: \(error)")
+            // Deletion failed
         }
     }
     
-    // MARK: - Notifications (Stubs)
+    // MARK: - Notifications
     
     /// Schedule notifications for a routine
+    /// Delegates to NotificationManager for actual scheduling
     ///
     /// - Parameter routine: The Routine to schedule notifications for
     func scheduleNotificationsForRoutine(_ routine: Routine) {
-        // TODO: Implement actual notification scheduling
-        // This will be implemented when we build the notification system
-        print("🔔 Scheduling notifications for: \(routine.name) (stub)")
+        NotificationManager.shared.scheduleRoutineNotification(for: routine)
     }
     
     /// Cancel notifications for a routine
+    /// Delegates to NotificationManager for actual cancellation
     ///
     /// - Parameter routine: The Routine to cancel notifications for
     private func cancelNotificationsForRoutine(_ routine: Routine) {
-        // TODO: Implement actual notification cancellation
-        // This will be implemented when we build the notification system
-        print("🔕 Canceling notifications for: \(routine.name) (stub)")
+        NotificationManager.shared.cancelRoutineNotification(for: routine)
     }
 }

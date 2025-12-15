@@ -44,7 +44,10 @@ struct BlockButton: View {
     }
     
     var body: some View {
-        Button(action: action) {
+        Button {
+            HapticManager.mediumTap()
+            action()
+        } label: {
             Text(text)
                 .style(.buttonText)
                 .foregroundStyle(variant.textColor)
@@ -54,19 +57,16 @@ struct BlockButton: View {
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(text)
     }
 }
 
 // MARK: - Preview
 #Preview("Block Button Variants") {
     VStack(spacing: .sp24) {
-        BlockButton("Continue", variant: .default) {
-            print("Default tapped")
-        }
+        BlockButton("Continue", variant: .default) {}
         
-        BlockButton("Delete Routine", variant: .danger) {
-            print("Danger tapped")
-        }
+        BlockButton("Delete Routine", variant: .danger) {}
     }
     .padding(.sp24)
 }
