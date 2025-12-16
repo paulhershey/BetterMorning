@@ -32,11 +32,10 @@ struct ExploreView: View {
                     handleCreateAction()
                 }
             )
-            .padding(.top, .sp8) // ✅ Using your Spacing System
+            .padding(.top, .sp8)
             
             // Avatar Cloud
             GeometryReader { geometry in
-                // Calculate scale factor to ensure it fits visually on smaller screens
                 ZStack {
                     ForEach(AvatarPosition.allPositions) { position in
                         // Only render if we can find the routine in data
@@ -49,7 +48,7 @@ struct ExploreView: View {
                                     size: position.size
                                 )
                             }
-                            .buttonStyle(.plain) // Removes default button highlight overlay
+                            .buttonStyle(.plain)
                             .position(
                                 x: position.relativeX(in: geometry.size.width),
                                 y: position.relativeY(in: geometry.size.height)
@@ -58,11 +57,11 @@ struct ExploreView: View {
                     }
                 }
             }
-            .padding(.top, .sp24)       // ✅ Using DesignSystem token
-            .padding(.horizontal, .sp24) // ✅ Using DesignSystem token
-            .padding(.bottom, .sp104)    // ✅ Using DesignSystem token
+            .padding(.top, .sp24)
+            .padding(.horizontal, .sp24)
+            .padding(.bottom, .sp104)
         }
-        .background(Color.colorNeutralWhite) // ✅ FIXED: Using your DesignSystem color
+        .background(Color.colorNeutralWhite)
         .navigationBarHidden(true)
         .sheet(item: $selectedRoutine) { routine in
             CelebrityDetailView(routine: routine)

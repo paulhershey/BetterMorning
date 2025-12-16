@@ -54,7 +54,13 @@ struct CreateRoutineView: View {
                 CustomHeader(
                     title: $viewModel.title,
                     isSaveEnabled: viewModel.isSaveEnabled,
-                    onSave: saveRoutine
+                    onSave: saveRoutine,
+                    onTitleSubmit: {
+                        // When user presses Done on title, move to task entry if title is valid
+                        if !viewModel.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            moveToTaskTitleEntry()
+                        }
+                    }
                 )
                 .padding(.top, .sp16)
                 
@@ -68,6 +74,12 @@ struct CreateRoutineView: View {
             }
         }
         .onAppear {
+            // Reset form to fresh state each time modal opens
+            viewModel.clearDraft()
+            currentStep = .enteringTitle
+            currentTaskTitle = ""
+            currentTaskTime = Date()
+            
             // Auto-focus title on appear
             Task {
                 try? await Task.sleep(for: .milliseconds(500))
@@ -137,12 +149,6 @@ struct CreateRoutineView: View {
             
             Spacer()
         }
-        .onSubmit {
-            // When user presses return on title, move to task entry
-            if !viewModel.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                moveToTaskTitleEntry()
-            }
-        }
     }
     
     // MARK: - Step 2: Task Title Input
@@ -178,17 +184,24 @@ struct CreateRoutineView: View {
                 .textInputAutocapitalization(.sentences)
                 .autocorrectionDisabled(false)
                 .onChange(of: currentTaskTitle) { _, newValue in
+                    // Intercept newline (Enter key) and treat as submit
+                    if newValue.contains("\n") {
+                        // Remove the newline
+                        currentTaskTitle = newValue.replacingOccurrences(of: "\n", with: "")
+                        // Move to time picker if title is valid
+                        if !currentTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            moveToTimePicker()
+                        }
+                        return
+                    }
+                    
                     // Enforce 70 char limit
                     if newValue.count > CreateRoutineViewModel.maxTaskTitleCharacters {
                         currentTaskTitle = String(newValue.prefix(CreateRoutineViewModel.maxTaskTitleCharacters))
                     }
                 }
-                .onSubmit {
-                    // When user presses return, move to time picker
-                    if !currentTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        moveToTimePicker()
-                    }
-                }
+                // Note: .onSubmit doesn't work with multi-line TextField
+                // We handle Enter key via newline interception in .onChange above
         }
         .padding(.sp16)
         .background(Color.colorNeutralWhite)

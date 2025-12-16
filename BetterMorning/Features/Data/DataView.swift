@@ -81,24 +81,21 @@ struct DataView: View {
                 Text("Are you sure you want to delete \"\(routine.name)\"? This will permanently remove all progress data and cannot be undone.")
             }
         }
+        .navigationBarHidden(true)
     }
     
     // MARK: - Empty State View
     
     private var emptyStateView: some View {
-        ZStack {
-            // Background gradient image
-            VStack {
-                Image("data_empty_state")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: .heroImageHeight)
-                    .clipped()
-                
-                Spacer()
-            }
-            .ignoresSafeArea()
+        ZStack(alignment: .top) {
+            // Background gradient image - extends into safe area
+            Image("data_empty_state")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: .infinity)
+                .frame(height: .heroImageHeight)
+                .clipped()
+                .ignoresSafeArea(edges: .top)
             
             // Content
             VStack(spacing: 0) {

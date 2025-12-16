@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 
 @Observable
 final class AppStateManager {
@@ -92,9 +93,11 @@ final class AppStateManager {
         hasPurchasedPremium = true
     }
     
-    /// Switch to a specific tab
+    /// Switch to a specific tab with animation
     func switchToTab(_ tab: AppTab) {
-        selectedTab = tab
+        withAnimation(.easeInOut(duration: 0.3)) {
+            selectedTab = tab
+        }
     }
     
     /// Reset all app data (called from Settings)

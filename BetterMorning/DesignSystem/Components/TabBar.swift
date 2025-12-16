@@ -63,7 +63,7 @@ struct TabBar: View {
         let isSelected = selectedTab == tab
         
         Button {
-            HapticManager.selectionChanged()
+            // Haptic feedback handled by MainTabView's onChange
             withAnimation(.snappy) {
                 selectedTab = tab
             }

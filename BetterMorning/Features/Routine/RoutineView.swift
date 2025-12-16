@@ -102,6 +102,7 @@ struct RoutineView: View {
             .presentationDetents([.medium])
             .presentationDragIndicator(.visible)
         }
+        .navigationBarHidden(true)
     }
     
     // MARK: - Create Action
@@ -202,19 +203,15 @@ struct RoutineView: View {
     // MARK: - Empty State View (No Routine)
     
     private var emptyStateView: some View {
-        ZStack {
-            // Background gradient image
-            VStack {
-                Image("empty_state")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: .heroImageHeight)
-                    .clipped()
-                
-                Spacer()
-            }
-            .ignoresSafeArea()
+        ZStack(alignment: .top) {
+            // Background gradient image - extends into safe area
+            Image("empty_state")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: .infinity)
+                .frame(height: .heroImageHeight)
+                .clipped()
+                .ignoresSafeArea(edges: .top)
             
             // Content
             VStack(spacing: 0) {
@@ -273,19 +270,15 @@ struct RoutineView: View {
     // MARK: - Starts Tomorrow View
     
     private var startsTomorrowView: some View {
-        ZStack {
-            // Background gradient image (purple/blue)
-            VStack {
-                Image("day_one")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: .heroImageHeight)
-                    .clipped()
-                
-                Spacer()
-            }
-            .ignoresSafeArea()
+        ZStack(alignment: .top) {
+            // Background gradient image - extends into safe area
+            Image("day_one")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: .infinity)
+                .frame(height: .heroImageHeight)
+                .clipped()
+                .ignoresSafeArea(edges: .top)
             
             // Content
             VStack(spacing: 0) {

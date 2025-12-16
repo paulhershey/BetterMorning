@@ -116,8 +116,17 @@ struct CelebrityDetailView: View {
                     // Activate the routine (RoutineManager is pre-configured with context)
                     RoutineManager.shared.activate(celebrityRoutine: routine)
                     
-                    // Dismiss the view
+                    // Dismiss the modal
                     dismiss()
+                    
+                    // After modal dismisses, switch to Routine tab to show "Starts Tomorrow" state
+                    Task {
+                        // Wait for dismiss animation to complete (~300ms)
+                        try? await Task.sleep(for: .milliseconds(400))
+                        await MainActor.run {
+                            AppStateManager.shared.switchToTab(.routine)
+                        }
+                    }
                 }
             }
             .padding(.horizontal, .sp24)

@@ -34,6 +34,9 @@ struct DataCard: View {
     /// Tracks horizontal drag offset for swipe gesture
     @State private var dragOffset: CGFloat = 0
     
+    /// Tracks whether the current drag is horizontal (vs vertical for scrolling)
+    @State private var isHorizontalDrag: Bool = false
+    
     /// Minimum swipe distance to trigger week navigation
     private let swipeThreshold: CGFloat = 50
     
@@ -144,25 +147,41 @@ private extension DataCard {
         }
         .padding(.horizontal, .sp16)
         .padding(.vertical, .sp24)
-        .contentShape(Rectangle()) // Makes entire area tappable/draggable
-        .gesture(
+        // Note: Removed .contentShape(Rectangle()) to allow vertical scrolls to pass through
+        // The horizontal swipe gesture only activates on visible content (bars, labels)
+        .simultaneousGesture(
             DragGesture()
                 .onChanged { value in
-                    dragOffset = value.translation.width
-                }
-                .onEnded { value in
-                    let horizontalSwipe = value.translation.width
+                    let horizontal = abs(value.translation.width)
+                    let vertical = abs(value.translation.height)
                     
-                    if horizontalSwipe > swipeThreshold {
-                        // Swiped right → go to previous week
-                        onPage(.previous)
-                    } else if horizontalSwipe < -swipeThreshold {
-                        // Swiped left → go to next week
-                        onPage(.next)
+                    // Determine drag direction on first significant movement
+                    if !isHorizontalDrag && (horizontal > 10 || vertical > 10) {
+                        isHorizontalDrag = horizontal > vertical
                     }
                     
-                    // Reset drag offset
+                    // Only track horizontal offset if this is a horizontal drag
+                    if isHorizontalDrag {
+                        dragOffset = value.translation.width
+                    }
+                }
+                .onEnded { value in
+                    // Only trigger week navigation if this was a horizontal drag
+                    if isHorizontalDrag {
+                        let horizontalSwipe = value.translation.width
+                        
+                        if horizontalSwipe > swipeThreshold {
+                            // Swiped right → go to previous week
+                            onPage(.previous)
+                        } else if horizontalSwipe < -swipeThreshold {
+                            // Swiped left → go to next week
+                            onPage(.next)
+                        }
+                    }
+                    
+                    // Reset state
                     dragOffset = 0
+                    isHorizontalDrag = false
                 }
         )
     }

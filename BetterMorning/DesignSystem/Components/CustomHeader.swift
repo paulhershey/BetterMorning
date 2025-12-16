@@ -12,15 +12,18 @@ struct CustomHeader: View {
     @Binding var title: String
     let isSaveEnabled: Bool
     let onSave: () -> Void
+    let onTitleSubmit: (() -> Void)?
     
     init(
         title: Binding<String>,
         isSaveEnabled: Bool,
-        onSave: @escaping () -> Void
+        onSave: @escaping () -> Void,
+        onTitleSubmit: (() -> Void)? = nil
     ) {
         self._title = title
         self.isSaveEnabled = isSaveEnabled
         self.onSave = onSave
+        self.onTitleSubmit = onTitleSubmit
     }
     
     var body: some View {
@@ -49,10 +52,24 @@ struct CustomHeader: View {
                     .submitLabel(.done)
                     .autocorrectionDisabled(false)
                     .onChange(of: title) { oldValue, newValue in
+                        // Intercept newline (Enter key) and treat as submit
+                        if newValue.contains("\n") {
+                            // Remove the newline
+                            title = newValue.replacingOccurrences(of: "\n", with: "")
+                            // Trigger submit if title is valid
+                            if !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                onTitleSubmit?()
+                            }
+                            return
+                        }
+                        
+                        // Enforce 20 character limit
                         if newValue.count > 20 {
                             title = String(newValue.prefix(20))
                         }
                     }
+                    // Note: .onSubmit doesn't work with multi-line TextField (axis: .vertical)
+                    // We handle Enter key via newline interception in .onChange above
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             // UPDATE 3: Ensure title takes priority in width calculations

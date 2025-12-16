@@ -57,10 +57,22 @@ struct PaywallView: View {
                         .style(.display)
                         .foregroundStyle(Color.colorNeutralBlack)
                         .padding(.top, .sp16)
+                        #if DEBUG
+                        // Debug: Long-press price to unlock premium without purchase
+                        .onLongPressGesture(minimumDuration: 1.0) {
+                            debugUnlockPremium()
+                        }
+                        #endif
                     
                     Text("One-time purchase")
                         .style(.bodyRegular)
                         .foregroundStyle(Color.colorNeutralGrey2)
+                    
+                    #if DEBUG
+                    Text("Debug: Long-press price to unlock")
+                        .style(.overline)
+                        .foregroundStyle(Color.colorNeutralGrey1)
+                    #endif
                 }
                 
                 Spacer()
@@ -271,6 +283,28 @@ struct PaywallView: View {
             }
         }
     }
+    
+    #if DEBUG
+    /// Debug-only function to bypass StoreKit and unlock premium
+    private func debugUnlockPremium() {
+        HapticManager.success()
+        
+        // Directly unlock premium via AppStateManager
+        AppStateManager.shared.unlockPremium()
+        
+        // Show success animation
+        withAnimation(.easeInOut(duration: 0.3)) {
+            showingSuccess = true
+        }
+        
+        // Dismiss after delay
+        Task {
+            try? await Task.sleep(for: .milliseconds(1500))
+            dismiss()
+            onPurchaseComplete()
+        }
+    }
+    #endif
 }
 
 // MARK: - Preview

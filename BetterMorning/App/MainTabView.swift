@@ -2,7 +2,7 @@
 //  MainTabView.swift
 //  BetterMorning
 //
-//  Main navigation container with custom floating tab bar.
+//  Main navigation container with custom floating tab bar and swipe navigation.
 //
 
 import SwiftUI
@@ -14,25 +14,32 @@ struct MainTabView: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Content based on selected tab
-            Group {
-                switch appState.selectedTab {
-                case .explore:
-                    NavigationStack {
-                        ExploreView()
-                    }
-                case .routine:
-                    NavigationStack {
-                        RoutineView()
-                    }
-                case .data:
-                    NavigationStack {
-                        DataView()
-                    }
+            // Swipeable tab content using TabView with page style
+            // Provides native iOS swipe behavior with bounce at edges
+            TabView(selection: $appState.selectedTab) {
+                NavigationStack {
+                    ExploreView()
                 }
+                .tag(AppTab.explore)
+                
+                NavigationStack {
+                    RoutineView()
+                }
+                .tag(AppTab.routine)
+                
+                NavigationStack {
+                    DataView()
+                }
+                .tag(AppTab.data)
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .ignoresSafeArea()
+            .onChange(of: appState.selectedTab) { _, _ in
+                // Haptic feedback when swiping between tabs
+                HapticManager.selectionChanged()
             }
             
-            // Floating Tab Bar
+            // Floating Tab Bar (overlays the swipeable content)
             TabBar(selectedTab: $appState.selectedTab)
                 .padding(.bottom, .sp8)
         }
