@@ -50,9 +50,7 @@ struct AlertBanner: View {
         AlertBanner(
             message: "Routine Successfully Deleted",
             actionTitle: "Undo"
-        ) {
-            print("Undo tapped")
-        }
+        ) {}
     }
     .padding(.sp24)
 }

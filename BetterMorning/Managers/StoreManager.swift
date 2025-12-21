@@ -55,6 +55,7 @@ enum StoreError: LocalizedError, Equatable {
 
 // MARK: - Store Manager
 
+@MainActor
 @Observable
 final class StoreManager {
     
@@ -91,6 +92,8 @@ final class StoreManager {
     }
     
     /// Task for listening to transaction updates
+    /// Note: Cannot cancel from deinit because @Observable classes don't support nonisolated properties.
+    /// This is acceptable since StoreManager is a singleton that persists for the app's lifetime.
     private var transactionListener: Task<Void, Error>?
     
     // MARK: - Initialization
@@ -105,9 +108,9 @@ final class StoreManager {
         }
     }
     
-    deinit {
-        transactionListener?.cancel()
-    }
+    // Note: deinit removed - StoreManager is a singleton that persists for app lifetime,
+    // so cancellation in deinit is not necessary. If needed in the future, we can add
+    // an explicit cleanup method.
     
     // MARK: - Product Fetching
     

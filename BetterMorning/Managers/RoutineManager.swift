@@ -2,9 +2,31 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+/// Error types for routine operations
+enum RoutineError: LocalizedError {
+    case saveFailed
+    case deleteFailed
+    case activationFailed
+    
+    var errorDescription: String? {
+        switch self {
+        case .saveFailed:
+            return "Failed to save routine. Please try again."
+        case .deleteFailed:
+            return "Failed to delete routine. Please try again."
+        case .activationFailed:
+            return "Failed to activate routine. Please try again."
+        }
+    }
+}
+
+@MainActor
 @Observable
 class RoutineManager {
     static let shared = RoutineManager()
+    
+    /// Last error that occurred during a routine operation
+    var lastError: RoutineError?
     
     // Stored ModelContext for database operations
     private var modelContext: ModelContext?
@@ -77,8 +99,9 @@ class RoutineManager {
             // Schedule notifications for the new routine
             // Per Functional Spec 9.3: Schedule notification from startDate onwards
             scheduleNotificationsForRoutine(newRoutine)
+            lastError = nil
         } catch {
-            // Save failed - routine activation incomplete
+            lastError = .activationFailed
         }
     }
     
@@ -110,8 +133,9 @@ class RoutineManager {
                 routine.isActive = false
             }
             try context.save()
+            lastError = nil
         } catch {
-            // Deactivation failed - will retry on next operation
+            lastError = .saveFailed
         }
     }
     
@@ -195,8 +219,9 @@ class RoutineManager {
         // Save changes
         do {
             try context.save()
+            lastError = nil
         } catch {
-            // Task completion save failed - UI state may be out of sync
+            lastError = .saveFailed
         }
     }
     
@@ -478,8 +503,9 @@ class RoutineManager {
         // 6. Save changes
         do {
             try context.save()
+            lastError = nil
         } catch {
-            // Restart failed
+            lastError = .activationFailed
         }
     }
     
@@ -511,8 +537,9 @@ class RoutineManager {
         // 3. Save changes
         do {
             try context.save()
+            lastError = nil
         } catch {
-            // Deletion failed
+            lastError = .deleteFailed
         }
     }
     

@@ -11,6 +11,7 @@ import UserNotifications
 
 // MARK: - Notification Manager
 
+@MainActor
 @Observable
 final class NotificationManager {
     

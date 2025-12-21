@@ -33,12 +33,23 @@ struct CreateRoutineView: View {
     @State private var currentTaskTitle: String = ""
     @State private var currentTaskTime: Date = Date()
     
+    // Edit mode: tracks which existing task is being edited (nil = adding new task)
+    @State private var editingTaskId: UUID? = nil
+    
     // Focus states
-    @FocusState private var isTitleFocused: Bool
+    @State private var isTitleFocused: Bool = false
     @FocusState private var isTaskTitleFocused: Bool
     
     // Dismiss confirmation
     @State private var showingDiscardAlert: Bool = false
+    
+    // Create confirmation
+    @State private var showingCreateConfirmation: Bool = false
+    
+    /// Whether we're currently editing an existing task (vs adding a new one)
+    private var isEditingTask: Bool {
+        editingTaskId != nil
+    }
     
     var body: some View {
         ZStack(alignment: .top) {
@@ -53,8 +64,9 @@ struct CreateRoutineView: View {
                 // Custom header with editable title
                 CustomHeader(
                     title: $viewModel.title,
+                    isTitleFocused: $isTitleFocused,
                     isSaveEnabled: viewModel.isSaveEnabled,
-                    onSave: saveRoutine,
+                    onSave: { showingCreateConfirmation = true },
                     onTitleSubmit: {
                         // When user presses Done on title, move to task entry if title is valid
                         if !viewModel.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -95,6 +107,14 @@ struct CreateRoutineView: View {
         } message: {
             Text("Your routine draft will be lost.")
         }
+        .alert("Create Routine?", isPresented: $showingCreateConfirmation) {
+            Button("Keep Editing", role: .cancel) {}
+            Button("Create") {
+                saveRoutine()
+            }
+        } message: {
+            Text("Once created, this routine cannot be edited. Make sure your tasks and times are correct.")
+        }
     }
     
     // MARK: - Modal Header (Close Button)
@@ -104,6 +124,7 @@ struct CreateRoutineView: View {
             Spacer()
             
             Button {
+                HapticManager.lightTap()
                 handleDismiss()
             } label: {
                 Image(systemName: "xmark.circle.fill")
@@ -153,20 +174,94 @@ struct CreateRoutineView: View {
     
     // MARK: - Step 2: Task Title Input
     
+    /// ID for scrolling to the active task input
+    private let activeTaskInputId = "activeTaskInput"
+    
     private var taskTitleInputView: some View {
-        VStack(spacing: .sp16) {
-            // Current task being edited (using TaskItem style)
-            taskInputCard
-                .padding(.horizontal, .sp24)
-                .padding(.top, .sp24)
-            
-            // Existing tasks (if any)
-            if !viewModel.tasks.isEmpty {
-                existingTasksList
+        ZStack {
+            // Full-screen tap catcher to cancel task input
+            // Only enabled when adding a new task (not editing) and there are existing tasks
+            if !viewModel.tasks.isEmpty && !isEditingTask {
+                Color.colorNeutralWhite
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        cancelTaskInput()
+                    }
             }
             
-            Spacer()
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: .sp16) {
+                        // Existing tasks (if any) - shown at top so list builds naturally
+                        // When editing, we exclude the task being edited from this list
+                        if !tasksToDisplay.isEmpty {
+                            existingTasksList
+                                .padding(.top, .sp24)
+                                .onTapGesture {
+                                    // Only cancel if adding new task (not editing)
+                                    if !isEditingTask {
+                                        cancelTaskInput()
+                                    }
+                                }
+                        }
+                        
+                        // Task being edited - shown below existing tasks
+                        // Shows active state (purple border)
+                        VStack(spacing: .sp16) {
+                            taskInputCard
+                                .id(activeTaskInputId)
+                                .onTapGesture {
+                                    // Only cancel if adding new task (not editing) and there are other tasks
+                                    if !isEditingTask && !viewModel.tasks.isEmpty {
+                                        cancelTaskInput()
+                                    }
+                                }
+                            
+                            // Show "Next" button when title is not empty
+                            if !currentTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                HStack {
+                                    Spacer()
+                                    TaskButton("Next") {
+                                        moveToTimePicker()
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, .sp24)
+                        .padding(.top, tasksToDisplay.isEmpty ? .sp24 : 0)
+                        
+                        // Extra space at bottom to ensure input card can scroll above keyboard
+                        Spacer()
+                            .frame(height: .keyboardScrollSpacerHeight)
+                    }
+                }
+                .scrollDismissesKeyboard(.interactively)
+                .onChange(of: isTaskTitleFocused) { _, isFocused in
+                    if isFocused {
+                        // Scroll to active input when focused
+                        withAnimation(AppAnimations.standard) {
+                            proxy.scrollTo(activeTaskInputId, anchor: .center)
+                        }
+                    }
+                }
+            }
         }
+    }
+    
+    /// Cancels the current task input and returns to viewing tasks
+    /// Only works when there are existing tasks (user can abandon adding a new task)
+    private func cancelTaskInput() {
+        // Dismiss keyboard
+        isTaskTitleFocused = false
+        
+        // Clear edit state
+        editingTaskId = nil
+        
+        // Clear the input
+        currentTaskTitle = ""
+        
+        // Return to viewing tasks
+        currentStep = .viewingTasks
     }
     
     private var taskInputCard: some View {
@@ -183,6 +278,10 @@ struct CreateRoutineView: View {
                 .submitLabel(.next)
                 .textInputAutocapitalization(.sentences)
                 .autocorrectionDisabled(false)
+                // TextField has higher priority - tapping on it focuses instead of canceling
+                .onTapGesture {
+                    isTaskTitleFocused = true
+                }
                 .onChange(of: currentTaskTitle) { _, newValue in
                     // Intercept newline (Enter key) and treat as submit
                     if newValue.contains("\n") {
@@ -208,35 +307,68 @@ struct CreateRoutineView: View {
         .clipShape(RoundedRectangle(cornerRadius: .radiusLarge))
         .overlay(
             RoundedRectangle(cornerRadius: .radiusLarge)
-                .stroke(Color.brandSecondary, lineWidth: 2)
+                .stroke(Color.brandSecondary, lineWidth: .borderWidthMedium)
         )
     }
     
     // MARK: - Step 3: Time Picker
     
+    /// Maximum height for existing tasks list in time picker view
+    private let existingTasksMaxHeight: CGFloat = 180
+    
     private var taskTimePickerView: some View {
         VStack(spacing: .sp16) {
-            // Show the task being configured
-            VStack(alignment: .leading, spacing: .sp4) {
-                Text(formatTime(currentTaskTime))
-                    .style(.dataSmall)
-                    .foregroundStyle(Color.colorNeutralGrey2)
-                
-                Text(currentTaskTitle)
-                    .style(.bodyRegular)
-                    .foregroundStyle(Color.colorNeutralBlack)
-                    .lineLimit(2)
+            // Show existing tasks (if any) in a scrollable container with max height
+            if !tasksToDisplay.isEmpty {
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        existingTasksList
+                        
+                        // Anchor for scrolling to bottom
+                        Color.clear
+                            .frame(height: .dividerHeight)
+                            .id("existingTasksBottom")
+                    }
+                    .onAppear {
+                        // Scroll to bottom to show most recent task
+                        proxy.scrollTo("existingTasksBottom", anchor: .bottom)
+                    }
+                }
+                .frame(maxHeight: existingTasksMaxHeight)
+                .padding(.top, .sp24)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.sp16)
-            .background(Color.colorNeutralWhite)
-            .clipShape(RoundedRectangle(cornerRadius: .radiusLarge))
-            .overlay(
-                RoundedRectangle(cornerRadius: .radiusLarge)
-                    .stroke(Color.brandSecondary, lineWidth: 2)
-            )
+            
+            // Show the task being configured
+            VStack(spacing: .sp8) {
+                VStack(alignment: .leading, spacing: .sp4) {
+                    Text(formatTime(currentTaskTime))
+                        .style(.dataSmall)
+                        .foregroundStyle(Color.colorNeutralGrey2)
+                    
+                    Text(currentTaskTitle)
+                        .style(.bodyRegular)
+                        .foregroundStyle(Color.colorNeutralBlack)
+                        .lineLimit(2)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.sp16)
+                .background(Color.colorNeutralWhite)
+                .clipShape(RoundedRectangle(cornerRadius: .radiusLarge))
+                .overlay(
+                    RoundedRectangle(cornerRadius: .radiusLarge)
+                        .stroke(Color.brandSecondary, lineWidth: .borderWidthMedium)
+                )
+                
+                // Save/Update button aligned to the right
+                HStack {
+                    Spacer()
+                    TaskButton(isEditingTask ? "Update" : "Save") {
+                        saveCurrentTask()
+                    }
+                }
+            }
             .padding(.horizontal, .sp24)
-            .padding(.top, .sp24)
+            .padding(.top, tasksToDisplay.isEmpty ? .sp24 : 0)
             
             // Time picker (5-minute increments per Functional Spec 2.2)
             DatePicker(
@@ -274,24 +406,50 @@ struct CreateRoutineView: View {
             if viewModel.tasks.isEmpty {
                 emptyTasksHint
             } else {
-                List {
-                    ForEach(viewModel.tasks) { task in
-                        taskRow(task: task)
-                            .listRowInsets(EdgeInsets(top: .sp4, leading: .sp24, bottom: .sp4, trailing: .sp24))
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                Button(role: .destructive) {
-                                    viewModel.deleteTask(id: task.id)
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
+                ScrollViewReader { proxy in
+                    List {
+                        ForEach(viewModel.tasks) { task in
+                            taskRow(task: task)
+                                .listRowInsets(EdgeInsets(top: .sp4, leading: .sp24, bottom: .sp4, trailing: .sp24))
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    startEditingTask(task)
+                                }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        viewModel.deleteTask(id: task.id)
+                                    } label: {
+                                        Image("icon_close_white")
+                                    }
+                                    .tint(Color.utilityDanger)
+                                }
+                                .id(task.id)
+                        }
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .background(Color.colorNeutralWhite)
+                    .contentMargins(.bottom, 100, for: .scrollContent)
+                    .onAppear {
+                        // Scroll to last task when view appears
+                        if let lastTask = viewModel.tasks.last {
+                            proxy.scrollTo(lastTask.id, anchor: .bottom)
+                        }
+                    }
+                    .onChange(of: viewModel.tasks.count) { oldCount, newCount in
+                        // Auto-scroll to last task when a new task is added
+                        if newCount > oldCount, let lastTask = viewModel.tasks.last {
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .milliseconds(100))
+                                withAnimation(AppAnimations.standard) {
+                                    proxy.scrollTo(lastTask.id, anchor: .bottom)
                                 }
                             }
+                        }
                     }
                 }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
-                .background(Color.colorNeutralWhite)
             }
         }
         .padding(.top, .sp16)
@@ -302,7 +460,7 @@ struct CreateRoutineView: View {
             Spacer()
             
             Image(systemName: "checklist")
-                .font(.system(size: .sp48))
+                .font(.system(size: .sp48)) // Using spacing token for icon size is acceptable here as it's an empty state decoration
                 .foregroundStyle(Color.colorNeutralGrey1)
             
             Text("No tasks yet")
@@ -339,13 +497,21 @@ struct CreateRoutineView: View {
         .clipShape(RoundedRectangle(cornerRadius: .radiusLarge))
         .overlay(
             RoundedRectangle(cornerRadius: .radiusLarge)
-                .stroke(Color.colorNeutralGrey1, lineWidth: 1)
+                .stroke(Color.colorNeutralGrey1, lineWidth: .borderWidthThin)
         )
+    }
+    
+    /// Tasks to display in the existing tasks list (excludes the task being edited)
+    private var tasksToDisplay: [DraftTask] {
+        if let editingId = editingTaskId {
+            return viewModel.tasks.filter { $0.id != editingId }
+        }
+        return viewModel.tasks
     }
     
     private var existingTasksList: some View {
         VStack(spacing: .sp8) {
-            ForEach(viewModel.tasks) { task in
+            ForEach(tasksToDisplay) { task in
                 HStack(spacing: .sp16) {
                     VStack(alignment: .leading, spacing: .sp4) {
                         Text(formatTime(task.time))
@@ -365,7 +531,7 @@ struct CreateRoutineView: View {
                 .clipShape(RoundedRectangle(cornerRadius: .radiusLarge))
                 .overlay(
                     RoundedRectangle(cornerRadius: .radiusLarge)
-                        .stroke(Color.colorNeutralGrey1, lineWidth: 1)
+                        .stroke(Color.colorNeutralGrey1, lineWidth: .borderWidthThin)
                 )
             }
         }
@@ -383,12 +549,38 @@ struct CreateRoutineView: View {
                 EmptyView()
                 
             case .enteringTaskTitle:
-                // No button - user presses return to continue
-                EmptyView()
+                // Show Cancel button when editing an existing task
+                if isEditingTask {
+                    Button {
+                        HapticManager.lightTap()
+                        cancelEdit()
+                    } label: {
+                        Text("Cancel")
+                            .style(.buttonText)
+                            .foregroundStyle(Color.colorNeutralGrey2)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.bottom, .sp32)
+                }
                 
             case .selectingTaskTime:
-                BlockButton("Save task") {
-                    saveCurrentTask()
+                VStack(spacing: .sp16) {
+                    BlockButton(isEditingTask ? "Save changes" : "Save task") {
+                        saveCurrentTask()
+                    }
+                    
+                    // Show Cancel button when editing
+                    if isEditingTask {
+                        Button {
+                            HapticManager.lightTap()
+                            cancelEdit()
+                        } label: {
+                            Text("Cancel")
+                                .style(.buttonText)
+                                .foregroundStyle(Color.colorNeutralGrey2)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
                 .padding(.horizontal, .sp24)
                 .padding(.bottom, .sp32)
@@ -426,7 +618,7 @@ struct CreateRoutineView: View {
             Spacer()
         }
         .padding(.sp16)
-        .background(Color.brandSecondary.opacity(0.3))
+        .background(Color.brandSecondary.opacity(CGFloat.opacityLight))
         .clipShape(RoundedRectangle(cornerRadius: .radiusLarge))
     }
     
@@ -460,7 +652,14 @@ struct CreateRoutineView: View {
         let trimmedTitle = currentTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedTitle.isEmpty else { return }
         
-        viewModel.addTask(title: trimmedTitle, time: currentTaskTime)
+        if let taskId = editingTaskId {
+            // Update existing task
+            viewModel.updateTask(id: taskId, title: trimmedTitle, time: currentTaskTime)
+            editingTaskId = nil
+        } else {
+            // Add new task
+            viewModel.addTask(title: trimmedTitle, time: currentTaskTime)
+        }
         
         // Move to viewing tasks
         currentStep = .viewingTasks
@@ -470,6 +669,7 @@ struct CreateRoutineView: View {
     private func startNewTask() {
         guard viewModel.canAddMoreTasks else { return }
         
+        editingTaskId = nil
         currentTaskTitle = ""
         currentTaskTime = defaultTaskTime()
         currentStep = .enteringTaskTitle
@@ -480,9 +680,35 @@ struct CreateRoutineView: View {
         }
     }
     
+    private func startEditingTask(_ task: DraftTask) {
+        editingTaskId = task.id
+        currentTaskTitle = task.title
+        currentTaskTime = task.time
+        currentStep = .enteringTaskTitle
+        
+        Task {
+            try? await Task.sleep(for: .milliseconds(100))
+            isTaskTitleFocused = true
+        }
+    }
+    
+    private func cancelEdit() {
+        editingTaskId = nil
+        currentTaskTitle = ""
+        currentStep = .viewingTasks
+    }
+    
     private func saveRoutine() {
         if viewModel.finalizeAndSave(modelContext: modelContext) {
             dismiss()
+            
+            // Navigate to Routine tab after modal dismisses
+            Task {
+                try? await Task.sleep(for: .milliseconds(400))
+                await MainActor.run {
+                    AppStateManager.shared.switchToTab(.routine)
+                }
+            }
         }
     }
     
@@ -497,9 +723,10 @@ struct CreateRoutineView: View {
     }
     
     private func defaultTaskTime() -> Date {
-        // If there are existing tasks, default to 15 minutes after the last one
-        if let lastTask = viewModel.tasks.last {
-            return Calendar.current.date(byAdding: .minute, value: 15, to: lastTask.time) ?? Date()
+        // If there are existing tasks, default to 15 minutes after the task with the latest time
+        // This ensures new tasks are added to the bottom of the time-sorted list
+        if let latestTask = viewModel.tasks.max(by: { $0.time < $1.time }) {
+            return Calendar.current.date(byAdding: .minute, value: 15, to: latestTask.time) ?? Date()
         }
         
         // Otherwise, default to 7:00 AM

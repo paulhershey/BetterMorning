@@ -40,17 +40,15 @@ struct CreateRoutineSheetModifier: ViewModifier {
 
 // MARK: - Paywall Sheet Modifier
 
-/// A view modifier that handles the Paywall sheet presentation
+/// A view modifier that handles the Paywall full-screen modal presentation
 struct PaywallSheetModifier: ViewModifier {
     @Binding var isPresented: Bool
     let onPurchaseComplete: () -> Void
     
     func body(content: Content) -> some View {
         content
-            .sheet(isPresented: $isPresented) {
+            .fullScreenCover(isPresented: $isPresented) {
                 PaywallView(onPurchaseComplete: onPurchaseComplete)
-                    .presentationDetents([.medium])
-                    .presentationDragIndicator(.visible)
             }
     }
 }

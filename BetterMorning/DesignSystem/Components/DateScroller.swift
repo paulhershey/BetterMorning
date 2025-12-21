@@ -57,14 +57,14 @@ struct DateScroller: View {
                 // Scroll to selected date (today) when view appears
                 Task {
                     try? await Task.sleep(for: .milliseconds(100))
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(AppAnimations.standard) {
                         proxy.scrollTo(selectedDate, anchor: .center)
                     }
                 }
             }
             .onChange(of: selectedDate) { _, newDate in
                 // Scroll to newly selected date
-                withAnimation(.easeInOut(duration: 0.3)) {
+                withAnimation(AppAnimations.standard) {
                     proxy.scrollTo(newDate, anchor: .center)
                 }
             }

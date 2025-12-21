@@ -84,7 +84,7 @@ struct DateCard: View {
             // DateCard sizing: 56pt width to show ~5 cards with 6th peeking
             // Per Func Spec 8.2: "Displays ~5 days fully, with 6th partially visible"
             .padding(.vertical, .sp16)
-            .frame(width: 56)
+            .frame(width: .dateCardWidth)
             .background(variant.backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: .radiusSmall))
             .overlay(
@@ -93,23 +93,31 @@ struct DateCard: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(dayName) \(dateNumber)")
+        .accessibilityValue(accessibilityStateDescription)
+        .accessibilityHint(variant == .rest ? "Not available" : "Double tap to view this day")
+    }
+    
+    private var accessibilityStateDescription: String {
+        switch variant {
+        case .rest:
+            return "Future date"
+        case .selected:
+            return "Selected"
+        case .completed:
+            return "Has completed tasks"
+        }
     }
 }
 
 // MARK: - Preview
 #Preview("Date Card Variants") {
     HStack(spacing: .sp16) {
-        DateCard(dayName: "Wed", dateNumber: "25", variant: .rest) {
-            print("Rest tapped")
-        }
+        DateCard(dayName: "Wed", dateNumber: "25", variant: .rest) {}
         
-        DateCard(dayName: "Wed", dateNumber: "25", variant: .selected) {
-            print("Selected tapped")
-        }
+        DateCard(dayName: "Wed", dateNumber: "25", variant: .selected) {}
         
-        DateCard(dayName: "Wed", dateNumber: "25", variant: .completed) {
-            print("Completed tapped")
-        }
+        DateCard(dayName: "Wed", dateNumber: "25", variant: .completed) {}
     }
     .padding(.sp24)
 }

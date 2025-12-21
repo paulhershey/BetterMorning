@@ -5,6 +5,7 @@
 //  Multi-step onboarding carousel introducing the app to new users.
 //
 
+import Lottie
 import SwiftUI
 
 struct OnboardingView: View {
@@ -12,69 +13,100 @@ struct OnboardingView: View {
     @State private var viewModel = OnboardingViewModel()
     
     // Swipe gesture threshold
-    private let swipeThreshold: CGFloat = 50
+    private let swipeThreshold: CGFloat = CGFloat.swipeThreshold
     
     var body: some View {
         GeometryReader { geometry in
             // MARK: - Content Layer
             VStack(spacing: 0) {
-                // Top spacer
-                Spacer()
-                    .frame(height: geometry.size.height * 0.24)
-                
-                // MARK: - Text Stage (ZStack)
-                // FIX: Changing this to ZStack prevents the "narrowing" glitch.
-                // It allows the outgoing/incoming text to overlap during the slide
-                // instead of fighting for horizontal space.
-                ZStack(alignment: .topLeading) {
-                    OnboardingContent(
-                        title: viewModel.currentStep.title,
-                        bodyText: viewModel.currentStep.bodyText
-                    )
-                    // The ID and Transition belong to the content inside the stage
-                    .id(viewModel.currentStepIndex)
-                    .transition(transitionForDirection)
-                }
-                // Force ZStack to always take full width (screen width minus 48pt padding)
-                .frame(width: geometry.size.width - (.sp24 * 2), alignment: .leading)
-                .padding(.horizontal, .sp24) // Apply padding to the STAGE
-                
-                // Spacing
-                Spacer()
-                    .frame(height: .sp24)
-                
-                // MARK: - Image Stage (ZStack)
-                ZStack(alignment: .top) {
-                    if let contentImageName = viewModel.currentStep.contentImageName {
-                        Image(contentImageName)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxHeight: 210)
-                            .id("image-\(viewModel.currentStepIndex)")
-                            .transition(transitionForDirection)
-                    } else {
-                        // Keeps the ZStack "alive" and sized correctly even when empty
-                        Color.clear
-                            .frame(height: 0)
+                // Check if current step has a Lottie animation
+                if let lottieAnimationName = viewModel.currentStep.lottieAnimationName {
+                    // MARK: - Lottie Animation Layout (content anchored to bottom)
+                    
+                    // Flexible spacer pushes everything to the bottom
+                    Spacer()
+                    
+                    // Lottie Animation
+                    LottieView(animationName: lottieAnimationName, loopMode: .loop)
+                        .frame(width: .emptyRoutineAnimationWidth, height: .onboardingAnimationHeight)
+                        .id("lottie-\(viewModel.currentStepIndex)")
+                        .transition(transitionForDirection)
+                    
+                    // Spacing between animation and content
+                    Spacer()
+                        .frame(height: .sp24)
+                    
+                    // Text Content (anchored above button)
+                    ZStack(alignment: .topLeading) {
+                        OnboardingContent(
+                            title: viewModel.currentStep.title,
+                            bodyText: viewModel.currentStep.bodyText
+                        )
+                        .id(viewModel.currentStepIndex)
+                        .transition(transitionForDirection)
                     }
+                    .frame(width: geometry.size.width - (.sp24 * 2), alignment: .leading)
+                    .padding(.horizontal, .sp24)
+                    
+                    // Spacing between content and button
+                    Spacer()
+                        .frame(height: .sp48)
+                    
+                } else {
+                    // MARK: - Standard Layout (gradient background, content image below)
+                    
+                    // Top spacer
+                    Spacer()
+                        .frame(height: geometry.size.height * 0.24)
+                    
+                    // Text Stage (ZStack)
+                    ZStack(alignment: .topLeading) {
+                        OnboardingContent(
+                            title: viewModel.currentStep.title,
+                            bodyText: viewModel.currentStep.bodyText
+                        )
+                        .id(viewModel.currentStepIndex)
+                        .transition(transitionForDirection)
+                    }
+                    .frame(width: geometry.size.width - (.sp24 * 2), alignment: .leading)
+                    .padding(.horizontal, .sp24)
+                    
+                    // Spacing
+                    Spacer()
+                        .frame(height: .sp24)
+                    
+                    // Image Stage (ZStack)
+                    ZStack(alignment: .top) {
+                        if let contentImageName = viewModel.currentStep.contentImageName {
+                            Image(contentImageName)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxHeight: 210)
+                                .id("image-\(viewModel.currentStepIndex)")
+                                .transition(transitionForDirection)
+                        } else {
+                            Color.clear
+                                .frame(height: .sp0)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, .sp24)
+                    
+                    // Flexible spacer
+                    Spacer()
                 }
-                .frame(maxWidth: .infinity) // Ensure stage is full width
-                .padding(.horizontal, .sp24)
                 
-                // Flexible spacer
-                Spacer()
-                
-                // Bottom Button
+                // Bottom Button (always visible)
                 BlockButton(viewModel.currentStep.buttonTitle) {
-                    withAnimation(.easeInOut(duration: 0.4)) {
+                    withAnimation(AppAnimations.slow) {
                         viewModel.continueAction()
                     }
                 }
                 .padding(.horizontal, .sp24)
-                .padding(.bottom, .sp24)
+                .padding(.bottom, .onboardingBottomPadding)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(Rectangle()) // Make entire area tappable for gesture
+            .contentShape(Rectangle())
             .gesture(swipeGesture)
         }
         // MARK: - Background Layer
@@ -82,11 +114,14 @@ struct OnboardingView: View {
             ZStack {
                 Color.colorNeutralWhite
                 
-                Image(viewModel.currentStep.backgroundImageName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipped()
+                // Only show gradient background for steps without Lottie animation
+                if !viewModel.currentStep.hasLottieAnimation {
+                    Image(viewModel.currentStep.backgroundImageName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipped()
+                }
             }
             .ignoresSafeArea()
         )
@@ -101,12 +136,12 @@ struct OnboardingView: View {
                 
                 if horizontalDistance < -swipeThreshold {
                     // Swipe left → go forward
-                    withAnimation(.easeInOut(duration: 0.4)) {
+                    withAnimation(AppAnimations.slow) {
                         viewModel.continueAction()
                     }
                 } else if horizontalDistance > swipeThreshold {
                     // Swipe right → go back
-                    withAnimation(.easeInOut(duration: 0.4)) {
+                    withAnimation(AppAnimations.slow) {
                         viewModel.goBack()
                     }
                 }

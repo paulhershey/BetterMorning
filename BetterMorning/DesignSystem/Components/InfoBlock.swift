@@ -108,13 +108,9 @@ private struct InfoBlockPreview: View {
                     bodyText: "Explore routines from world-class performers or create your own rhythm—and begin building the habits that move you toward your best self.",
                     variant: .action(
                         secondaryTitle: "Explore",
-                        secondaryAction: {
-                            print("Explore tapped")
-                        },
+                        secondaryAction: {},
                         primaryTitle: "Create",
-                        primaryAction: {
-                            print("Create tapped")
-                        }
+                        primaryAction: {}
                     )
                 )
             }

@@ -20,7 +20,7 @@ struct ContentView: View {
                 MainTabView()
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: appState.hasCompletedOnboarding)
+        .animation(AppAnimations.standard, value: appState.hasCompletedOnboarding)
     }
 }
 

@@ -18,9 +18,9 @@ struct ShimmerModifier: ViewModifier {
                 GeometryReader { geometry in
                     LinearGradient(
                         colors: [
-                            Color.colorNeutralGrey1.opacity(0.4),
-                            Color.colorNeutralGrey1.opacity(0.8),
-                            Color.colorNeutralGrey1.opacity(0.4)
+                            Color.colorNeutralGrey1.opacity(CGFloat.opacityMedium),
+                            Color.colorNeutralGrey1.opacity(CGFloat.opacityHeavy),
+                            Color.colorNeutralGrey1.opacity(CGFloat.opacityMedium)
                         ],
                         startPoint: UnitPoint(x: phase - 1, y: 0.5),
                         endPoint: UnitPoint(x: phase, y: 0.5)
@@ -29,7 +29,7 @@ struct ShimmerModifier: ViewModifier {
             )
             .mask(content)
             .onAppear {
-                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                withAnimation(AppAnimations.shimmer) {
                     phase = 2
                 }
             }
@@ -53,12 +53,12 @@ struct TaskItemSkeleton: View {
                 // Time placeholder
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.colorNeutralGrey1)
-                    .frame(width: 60, height: 12)
+                    .frame(width: .skeletonTimeWidth, height: .skeletonTimeHeight)
                 
                 // Title placeholder
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.colorNeutralGrey1)
-                    .frame(height: 18)
+                    .frame(height: .skeletonTitleHeight)
             }
             
             Spacer()
@@ -68,7 +68,7 @@ struct TaskItemSkeleton: View {
         .clipShape(RoundedRectangle(cornerRadius: .radiusLarge))
         .overlay(
             RoundedRectangle(cornerRadius: .radiusLarge)
-                .stroke(Color.colorNeutralGrey1, lineWidth: 1)
+                .stroke(Color.colorNeutralGrey1, lineWidth: .borderWidthThin)
         )
         .shimmer()
     }
@@ -82,19 +82,19 @@ struct DataCardSkeleton: View {
             HStack {
                 Circle()
                     .fill(Color.colorNeutralGrey1)
-                    .frame(width: 32, height: 32)
+                    .frame(width: .skeletonAvatarSize, height: .skeletonAvatarSize)
                 
                 Spacer()
                 
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.colorNeutralGrey1)
-                    .frame(width: 80, height: 14)
+                    .frame(width: .skeletonTextWidth, height: .skeletonTextHeight)
                 
                 Spacer()
                 
                 Circle()
                     .fill(Color.colorNeutralGrey1)
-                    .frame(width: 32, height: 32)
+                    .frame(width: .skeletonAvatarSize, height: .skeletonAvatarSize)
             }
             .padding(.sp16)
             
@@ -112,7 +112,7 @@ struct DataCardSkeleton: View {
                 }
             }
             .padding(.sp24)
-            .frame(height: 200)
+            .frame(height: .skeletonChartHeight)
             
             Divider()
             
@@ -120,7 +120,7 @@ struct DataCardSkeleton: View {
             HStack {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(Color.colorNeutralGrey1)
-                    .frame(width: 120, height: 16)
+                    .frame(width: .skeletonNameWidth, height: .skeletonNameHeight)
                 
                 Spacer()
             }
@@ -130,7 +130,7 @@ struct DataCardSkeleton: View {
         .clipShape(RoundedRectangle(cornerRadius: .radiusLarge))
         .overlay(
             RoundedRectangle(cornerRadius: .radiusLarge)
-                .stroke(Color.colorNeutralGrey1, lineWidth: 1)
+                .stroke(Color.colorNeutralGrey1, lineWidth: .borderWidthThin)
         )
         .shimmer()
     }
@@ -182,6 +182,6 @@ struct AvatarSkeleton: View {
         }
         .padding(.sp24)
     }
-    .background(Color.colorNeutralGrey1.opacity(0.3))
+    .background(Color.colorNeutralGrey1.opacity(CGFloat.opacityLight))
 }
 

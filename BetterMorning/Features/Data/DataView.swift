@@ -38,14 +38,17 @@ struct DataView: View {
                 .ignoresSafeArea()
             
             // Content based on state
-            if viewModel.hasRoutines {
+            if viewModel.isLoading {
+                // Show skeleton loading state
+                loadingStateView
+            } else if viewModel.hasRoutines {
                 dataCardListView
             } else {
                 emptyStateView
             }
         }
         .onAppear {
-            viewModel.refreshData()
+            viewModel.onViewAppear()
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
@@ -63,7 +66,7 @@ struct DataView: View {
                 showingPaywall = false
                 showingCreateRoutine = true
             })
-            .presentationDetents([.medium])
+            .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
         .alert("Delete Routine?", isPresented: showingDeleteConfirmation) {
@@ -84,70 +87,96 @@ struct DataView: View {
         .navigationBarHidden(true)
     }
     
+    // MARK: - Loading State View
+    
+    private var loadingStateView: some View {
+        VStack(spacing: 0) {
+            // Header
+            Header(
+                title: "Data",
+                settingsAction: {
+                    showingSettings = true
+                },
+                createAction: {
+                    handleCreateAction()
+                }
+            )
+            .padding(.top, .sp8)
+            
+            // Skeleton Data Cards
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: .sp24) {
+                    DataCardSkeleton()
+                    DataCardSkeleton()
+                }
+                .padding(.horizontal, .sp24)
+                .padding(.top, .sp24)
+                .padding(.bottom, .tabBarSpacerHeight)
+            }
+        }
+    }
+    
     // MARK: - Empty State View
     
     private var emptyStateView: some View {
-        ZStack(alignment: .top) {
-            // Background gradient image - extends into safe area
-            Image("data_empty_state")
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(maxWidth: .infinity)
-                .frame(height: .heroImageHeight)
-                .clipped()
-                .ignoresSafeArea(edges: .top)
+        VStack(spacing: 0) {
+            // Header (consistent with dataCardListView)
+            Header(
+                title: "Data",
+                settingsAction: {
+                    showingSettings = true
+                },
+                createAction: {
+                    handleCreateAction()
+                }
+            )
+            .padding(.top, .sp8)
             
-            // Content
-            VStack(spacing: 0) {
-                // Header (consistent with dataCardListView)
-                Header(
-                    title: "Data",
-                    settingsAction: {
-                        showingSettings = true
-                    },
-                    createAction: {
+            Spacer()
+            
+            // Lottie Animation - centered between header and content block
+            LottieView(animationName: "Empty-Data")
+                .frame(
+                    width: .emptyRoutineAnimationWidth,
+                    height: .emptyRoutineAnimationHeight
+                )
+            
+            Spacer()
+            
+            // Info Block Content with entrance animation
+            VStack(spacing: .sp16) {
+                Text("Nothing to show yet")
+                    .style(.heading1)
+                    .foregroundStyle(Color.colorNeutralBlack)
+                    .multilineTextAlignment(.center)
+                
+                Text("Your progress will appear here once you start your morning routine. Show up tomorrow, take it one step at a time, and watch your momentum build. Explore all available routines or create your own to get started.")
+                    .style(.bodyRegular)
+                    .foregroundStyle(Color.colorNeutralBlack)
+                    .multilineTextAlignment(.center)
+                
+                // Action Buttons
+                HStack(spacing: .sp40) {
+                    // Explore Button (primary/black with arrow left)
+                    TextButton(
+                        "Explore",
+                        variant: .primary,
+                        iconName: "icon_arrow_left_white"
+                    ) {
+                        AppStateManager.shared.switchToTab(.explore)
+                    }
+                    
+                    // Create Button (branded/purple)
+                    TextButton("Create", variant: .branded) {
                         handleCreateAction()
                     }
-                )
-                .padding(.top, .sp8)
-                
-                Spacer()
-                
-                // Info Block Content with entrance animation
-                VStack(spacing: .sp16) {
-                    Text("Nothing to show yet")
-                        .style(.heading1)
-                        .foregroundStyle(Color.colorNeutralBlack)
-                        .multilineTextAlignment(.center)
-                    
-                    Text("Your progress will appear here once you start your morning routine. Show up tomorrow, take it one step at a time, and watch your momentum build. Explore all available routines or create your own to get started.")
-                        .style(.bodyRegular)
-                        .foregroundStyle(Color.colorNeutralBlack)
-                        .multilineTextAlignment(.center)
-                    
-                    // Action Buttons
-                    HStack(spacing: .sp40) {
-                        // Explore Button (primary/black with arrow left)
-                        TextButton(
-                            "Explore",
-                            variant: .primary,
-                            iconName: "icon_arrow_left_white"
-                        ) {
-                            AppStateManager.shared.switchToTab(.explore)
-                        }
-                        
-                        // Create Button (branded/purple)
-                        TextButton("Create", variant: .branded) {
-                            handleCreateAction()
-                        }
-                    }
                 }
-                .padding(.horizontal, .sp24)
-                .transition(.opacity.combined(with: .move(edge: .bottom)))
-                
-                Spacer()
-                    .frame(height: .tabBarSpacerHeight)
             }
+            .padding(.horizontal, .sp24)
+            .transition(.opacity.combined(with: .move(edge: .bottom)))
+            
+            Spacer()
+                .frame(height: .tabBarSpacerHeight)
         }
     }
     
@@ -199,6 +228,8 @@ struct DataView: View {
             dateRange: weekData.dateRange,
             dataPoints: weekData.dataPoints,
             totalTasks: routine.tasks.count,
+            canGoBack: weekData.canNavigateBack,
+            canGoForward: weekData.canNavigateForward,
             onAction: { action in
                 handleCardAction(action, for: routine)
             },

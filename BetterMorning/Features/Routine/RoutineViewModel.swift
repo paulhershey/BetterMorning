@@ -10,10 +10,17 @@
 import SwiftUI
 import SwiftData
 
+@MainActor
 @Observable
 final class RoutineViewModel {
     
     // MARK: - State
+    
+    /// Whether data is currently loading (for skeleton states)
+    var isLoading: Bool = true
+    
+    /// Whether initial load has completed (prevents re-showing skeleton on tab switches)
+    private var hasCompletedInitialLoad: Bool = false
     
     /// Currently selected date in the date scroller
     var selectedDate: Date
@@ -109,24 +116,42 @@ final class RoutineViewModel {
     /// Called when the Routine view appears
     /// Performs midnight check and refreshes dates
     func onViewAppear() {
-        // 1. Perform midnight check (finalizes previous day if needed)
-        RoutineManager.shared.performMidnightCheck()
-        
-        // 2. Refresh dates to ensure we're showing current data
-        generateDates()
-        
-        // 3. Ensure selected date is today after a potential reset
-        let today = Calendar.current.startOfDay(for: Date())
-        if selectedDate != today {
-            selectedDate = today
+        // Only show loading skeleton on first appearance
+        if !hasCompletedInitialLoad {
+            isLoading = true
+            
+            // Brief delay to show skeleton (visual polish)
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(300))
+                
+                // 1. Perform midnight check (finalizes previous day if needed)
+                RoutineManager.shared.performMidnightCheck()
+                
+                // 2. Refresh dates to ensure we're showing current data
+                generateDates()
+                
+                // 3. Ensure selected date is today after a potential reset
+                let today = Calendar.current.startOfDay(for: Date())
+                if selectedDate != today {
+                    selectedDate = today
+                }
+                
+                // 4. Complete loading
+                withAnimation(AppAnimations.fast) {
+                    isLoading = false
+                }
+                hasCompletedInitialLoad = true
+            }
+        } else {
+            // Subsequent appearances: just refresh without skeleton
+            RoutineManager.shared.performMidnightCheck()
+            generateDates()
+            
+            let today = Calendar.current.startOfDay(for: Date())
+            if selectedDate != today {
+                selectedDate = today
+            }
         }
-    }
-    
-    /// Refresh dates when view appears or routine changes
-    /// Call this from the View's `.onAppear` to ensure dates are current
-    @available(*, deprecated, renamed: "onViewAppear")
-    func refreshDates() {
-        generateDates()
     }
     
     /// Generate the array of dates for the date scroller

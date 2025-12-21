@@ -61,12 +61,8 @@ struct Header: View {
         VStack {
             Header(
                 title: "Explore",
-                settingsAction: {
-                    print("Settings tapped")
-                },
-                createAction: {
-                    print("Create tapped")
-                }
+                settingsAction: {},
+                createAction: {}
             )
             .padding(.top, .sp32)
             

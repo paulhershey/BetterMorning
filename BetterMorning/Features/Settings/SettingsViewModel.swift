@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+@MainActor
 @Observable
 final class SettingsViewModel {
     
@@ -93,12 +94,14 @@ final class SettingsViewModel {
     
     /// Reset all app data (called after confirmation)
     /// - Parameter modelContext: The SwiftData model context
-    func performReset(modelContext: ModelContext) {
+    /// - Returns: True if reset was successful
+    @discardableResult
+    func performReset(modelContext: ModelContext) -> Bool {
         // Cancel all scheduled notifications via NotificationManager
         NotificationManager.shared.cancelAllNotifications()
         
         // Delegate to AppStateManager for the actual reset
-        AppStateManager.shared.resetAllData(modelContext: modelContext)
+        return AppStateManager.shared.resetAllData(modelContext: modelContext)
     }
 }
 

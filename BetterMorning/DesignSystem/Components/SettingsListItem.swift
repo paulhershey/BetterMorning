@@ -38,10 +38,19 @@ struct SettingsListItem: View {
                 
                 Spacer()
                 
-                Toggle("", isOn: $isOn)
+                Toggle("", isOn: Binding(
+                    get: { isOn },
+                    set: { newValue in
+                        HapticManager.lightTap()
+                        isOn = newValue
+                    }
+                ))
                     .labelsHidden()
                     .tint(Color.brandSecondary)
                     .disabled(isDisabled)
+                    .accessibilityLabel(title)
+                    .accessibilityValue(isOn ? "On" : "Off")
+                    .accessibilityHint(isDisabled ? "This setting is currently disabled" : "Double tap to toggle")
             }
             
             // Optional subtitle (e.g., "Open Settings to enable")

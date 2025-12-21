@@ -21,7 +21,10 @@ struct IconButton: View {
     }
     
     var body: some View {
-        Button(action: action) {
+        Button {
+            HapticManager.lightTap()
+            action()
+        } label: {
             Image(iconName)
                 .resizable()
                 .renderingMode(.template)

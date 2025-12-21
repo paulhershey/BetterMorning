@@ -5,6 +5,7 @@
 //  Routine feature main view.
 //
 
+import Lottie
 import SwiftUI
 import UserNotifications
 
@@ -29,6 +30,10 @@ struct RoutineView: View {
     /// State for Create Routine flow
     @State private var showingCreateRoutine: Bool = false
     @State private var showingPaywall: Bool = false
+    
+    /// Error alert state
+    @State private var showingErrorAlert: Bool = false
+    @State private var errorMessage: String = ""
     
     // Preview-only state override
     private var previewState: RoutineViewPreviewState = .automatic
@@ -99,10 +104,23 @@ struct RoutineView: View {
                 showingPaywall = false
                 showingCreateRoutine = true
             })
-            .presentationDetents([.medium])
+            .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
         .navigationBarHidden(true)
+        .onChange(of: RoutineManager.shared.lastError) { _, error in
+            if let error = error {
+                errorMessage = error.localizedDescription
+                showingErrorAlert = true
+            }
+        }
+        .alert("Error", isPresented: $showingErrorAlert) {
+            Button("OK", role: .cancel) {
+                RoutineManager.shared.lastError = nil
+            }
+        } message: {
+            Text(errorMessage)
+        }
     }
     
     // MARK: - Create Action
@@ -203,126 +221,249 @@ struct RoutineView: View {
     // MARK: - Empty State View (No Routine)
     
     private var emptyStateView: some View {
-        ZStack(alignment: .top) {
-            // Background gradient image - extends into safe area
-            Image("empty_state")
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(maxWidth: .infinity)
-                .frame(height: .heroImageHeight)
-                .clipped()
-                .ignoresSafeArea(edges: .top)
+        VStack(spacing: 0) {
+            // Header
+            Header(
+                title: "Routine",
+                settingsAction: {
+                    showingSettings = true
+                },
+                createAction: {
+                    handleCreateAction()
+                }
+            )
+            .padding(.top, .sp8)
             
-            // Content
-            VStack(spacing: 0) {
-                // Header
-                Header(
-                    title: "Routine",
-                    settingsAction: {
-                        showingSettings = true
-                    },
-                    createAction: {
+            Spacer()
+            
+            // Lottie Animation - centered between header and content block
+            LottieView(animationName: "Empty-Routine")
+                .frame(
+                    width: .emptyRoutineAnimationWidth,
+                    height: .emptyRoutineAnimationHeight
+                )
+            
+            Spacer()
+            
+            // Info Block Content with entrance animation
+            VStack(spacing: .sp16) {
+                Text("Start your mornings with intention")
+                    .style(.heading1)
+                    .foregroundStyle(Color.colorNeutralBlack)
+                    .multilineTextAlignment(.center)
+                
+                Text("Explore routines from world-class performers or create your own rhythm—and begin building the habits that move you toward your best self.")
+                    .style(.bodyRegular)
+                    .foregroundStyle(Color.colorNeutralBlack)
+                    .multilineTextAlignment(.center)
+                
+                // Action Buttons
+                HStack(spacing: .sp40) {
+                    // Explore Button (primary/black with arrow left)
+                    TextButton(
+                        "Explore",
+                        variant: .primary,
+                        iconName: "icon_arrow_left_white"
+                    ) {
+                        AppStateManager.shared.switchToTab(.explore)
+                    }
+                    
+                    // Create Button (branded/purple)
+                    TextButton("Create", variant: .branded) {
                         handleCreateAction()
                     }
-                )
-                .padding(.top, .sp8)
-                
-                Spacer()
-                
-                // Info Block Content with entrance animation
-                VStack(spacing: .sp16) {
-                    Text("Start your mornings with intention")
-                        .style(.heading1)
-                        .foregroundStyle(Color.colorNeutralBlack)
-                        .multilineTextAlignment(.center)
-                    
-                    Text("Explore routines from world-class performers or create your own rhythm—and begin building the habits that move you toward your best self.")
-                        .style(.bodyRegular)
-                        .foregroundStyle(Color.colorNeutralBlack)
-                        .multilineTextAlignment(.center)
-                    
-                    // Action Buttons
-                    HStack(spacing: .sp40) {
-                        // Explore Button (primary/black with arrow left)
-                        TextButton(
-                            "Explore",
-                            variant: .primary,
-                            iconName: "icon_arrow_left_white"
-                        ) {
-                            AppStateManager.shared.switchToTab(.explore)
-                        }
-                        
-                        // Create Button (branded/purple)
-                        TextButton("Create", variant: .branded) {
-                            handleCreateAction()
-                        }
-                    }
                 }
-                .padding(.horizontal, .sp24)
-                .transition(.opacity.combined(with: .move(edge: .bottom)))
-                
-                Spacer()
-                    .frame(height: .tabBarSpacerHeight)
             }
+            .padding(.horizontal, .sp24)
+            .transition(.opacity.combined(with: .move(edge: .bottom)))
+            
+            Spacer()
+                .frame(height: .tabBarSpacerHeight)
         }
     }
     
     // MARK: - Starts Tomorrow View
     
+    /// Whether the active routine is a custom routine (vs celebrity)
+    private var isCustomRoutine: Bool {
+        viewModel.activeRoutine?.type == .custom
+    }
+    
+    /// Background image for starts tomorrow view
+    private var startsTomorrowBackgroundImage: String {
+        isCustomRoutine ? "custom_day_one" : "day_one"
+    }
+    
+    /// Heading text for starts tomorrow view
+    private var startsTomorrowHeading: String {
+        isCustomRoutine ? "Looking good!" : "Great choice!"
+    }
+    
+    /// Body text for starts tomorrow view
+    private var startsTomorrowBody: String {
+        isCustomRoutine
+            ? "You just built your ideal morning. It goes live tomorrow—get ready to show up for yourself in a whole new way."
+            : "Your new morning routine is set and will kick off tomorrow—get ready to start your day with more clarity, focus, and momentum."
+    }
+    
+    @ViewBuilder
     private var startsTomorrowView: some View {
-        ZStack(alignment: .top) {
-            // Background gradient image - extends into safe area
-            Image("day_one")
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(maxWidth: .infinity)
-                .frame(height: .heroImageHeight)
-                .clipped()
-                .ignoresSafeArea(edges: .top)
-            
-            // Content
-            VStack(spacing: 0) {
-                // Header
-                Header(
-                    title: "Routine",
-                    settingsAction: {
-                        showingSettings = true
-                    },
-                    createAction: {
-                        handleCreateAction()
-                    }
-                )
-                .padding(.top, .sp8)
-                
-                Spacer()
-                
-                // Info Block Content
-                VStack(spacing: .sp16) {
-                    Text("Great choice!")
-                        .style(.heading1)
-                        .foregroundStyle(Color.colorNeutralBlack)
-                        .multilineTextAlignment(.center)
-                    
-                    Text("Your new morning routine is set and will kick off tomorrow—get ready to start your day with more clarity, focus, and momentum.")
-                        .style(.bodyRegular)
-                        .foregroundStyle(Color.colorNeutralBlack)
-                        .multilineTextAlignment(.center)
-                    
-                    // Notifications Toggle
-                    SettingsListItem(
-                        title: "Turn on notifications",
-                        isOn: $notificationsEnabled,
-                        subtitle: notificationSubtitle,
-                        isDisabled: isNotificationDenied,
-                        onSubtitleTap: isNotificationDenied ? { openAppSettings() } : nil
-                    )
+        if isCustomRoutine {
+            customRoutineStartsTomorrowView
+        } else {
+            celebrityRoutineStartsTomorrowView
+        }
+    }
+    
+    // MARK: - Custom Routine Starts Tomorrow View
+    
+    private var customRoutineStartsTomorrowView: some View {
+        VStack(spacing: 0) {
+            // Header
+            Header(
+                title: "Routine",
+                settingsAction: {
+                    showingSettings = true
+                },
+                createAction: {
+                    handleCreateAction()
                 }
-                .padding(.horizontal, .sp24)
+            )
+            .padding(.top, .sp8)
+            
+            // Lottie Animation
+            LottieView(animationName: "Custom-Empty", loopMode: .loop)
+                .frame(width: .emptyRoutineAnimationWidth, height: .customEmptyAnimationHeight)
+                .padding(.top, .sp48)
+                .padding(.bottom, .sp48)
+            
+            // Info Block
+            VStack(spacing: .sp16) {
+                Text(startsTomorrowHeading)
+                    .style(.heading1)
+                    .foregroundStyle(Color.colorNeutralBlack)
+                    .multilineTextAlignment(.center)
                 
-                Spacer()
-                    .frame(height: .tabBarSpacerHeight)
+                Text(startsTomorrowBody)
+                    .style(.bodyRegular)
+                    .foregroundStyle(Color.colorNeutralBlack)
+                    .multilineTextAlignment(.center)
+                
+                // Notifications Toggle
+                SettingsListItem(
+                    title: "Turn on notifications",
+                    isOn: $notificationsEnabled,
+                    subtitle: notificationSubtitle,
+                    isDisabled: isNotificationDenied,
+                    onSubtitleTap: isNotificationDenied ? { openAppSettings() } : nil
+                )
+            }
+            .padding(.horizontal, .sp24)
+            .padding(.top, .sp16)
+            
+            // Tasks (Scrollable)
+            ScrollView {
+                VStack(alignment: .leading, spacing: .sp8) {
+                    // Tasks in disabled state (display only)
+                    ForEach(routineTasks) { task in
+                        TaskItem(
+                            time: formatTaskTime(task.time),
+                            title: task.title,
+                            variant: .constant(.disabled),
+                            action: { } // No action needed for disabled state
+                        )
+                        .padding(.horizontal, .sp24)
+                    }
+                }
+                .padding(.top, .sp24)
+                .padding(.bottom, .tabBarSpacerHeight)
             }
         }
+    }
+    
+    // MARK: - Celebrity Routine Starts Tomorrow View
+    
+    /// Celebrity avatar image name
+    private var celebrityAvatarImageName: String {
+        viewModel.activeRoutine?.imageName ?? ""
+    }
+    
+    /// Tasks from the active routine for display
+    private var routineTasks: [RoutineTask] {
+        viewModel.activeRoutine?.tasks.sorted(by: { $0.time < $1.time }) ?? []
+    }
+    
+    private var celebrityRoutineStartsTomorrowView: some View {
+        VStack(spacing: 0) {
+            // Header
+            Header(
+                title: "Routine",
+                settingsAction: {
+                    showingSettings = true
+                },
+                createAction: {
+                    handleCreateAction()
+                }
+            )
+            .padding(.top, .sp8)
+            
+            // Celebrity Avatar
+            Image(celebrityAvatarImageName)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: .sp104, height: .sp104)
+                .clipShape(Circle())
+                .padding(.top, .sp24)
+            
+            // Info Block
+            VStack(spacing: .sp16) {
+                Text(startsTomorrowHeading)
+                    .style(.heading1)
+                    .foregroundStyle(Color.colorNeutralBlack)
+                    .multilineTextAlignment(.center)
+                
+                Text(startsTomorrowBody)
+                    .style(.bodyRegular)
+                    .foregroundStyle(Color.colorNeutralBlack)
+                    .multilineTextAlignment(.center)
+                
+                // Notifications Toggle
+                SettingsListItem(
+                    title: "Turn on notifications",
+                    isOn: $notificationsEnabled,
+                    subtitle: notificationSubtitle,
+                    isDisabled: isNotificationDenied,
+                    onSubtitleTap: isNotificationDenied ? { openAppSettings() } : nil
+                )
+            }
+            .padding(.horizontal, .sp24)
+            .padding(.top, .sp16)
+            
+            // Tasks (Scrollable)
+            ScrollView {
+                VStack(alignment: .leading, spacing: .sp8) {
+                    // Tasks in disabled state (display only)
+                    ForEach(routineTasks) { task in
+                        TaskItem(
+                            time: formatTaskTime(task.time),
+                            title: task.title,
+                            variant: .constant(.disabled),
+                            action: { } // No action needed for disabled state
+                        )
+                        .padding(.horizontal, .sp24)
+                    }
+                }
+                .padding(.top, .sp24)
+                .padding(.bottom, .tabBarSpacerHeight)
+            }
+        }
+    }
+    
+    /// Formats a task time for display
+    private func formatTaskTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mma"
+        return formatter.string(from: date).uppercased()
     }
     
     // MARK: - Active Routine View
@@ -352,20 +493,38 @@ struct RoutineView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: .sp8) {
                     // Routine Name Title
-                    Text(viewModel.routineName)
-                        .style(.heading4)
-                        .foregroundStyle(Color.colorNeutralBlack)
-                        .padding(.horizontal, .sp24)
-                        .padding(.top, .sp16)
-                    
-                    // Task Items
-                    VStack(spacing: .sp8) {
-                        ForEach(viewModel.tasks) { task in
-                            TaskItemRow(
-                                task: task,
-                                viewModel: viewModel
-                            )
+                    if viewModel.isLoading {
+                        // Skeleton for routine name
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.colorNeutralGrey1)
+                            .frame(width: .skeletonRoutineNameWidth, height: .skeletonRoutineNameHeight)
+                            .shimmer()
                             .padding(.horizontal, .sp24)
+                            .padding(.top, .sp16)
+                    } else {
+                        Text(viewModel.routineName)
+                            .style(.heading4)
+                            .foregroundStyle(Color.colorNeutralBlack)
+                            .padding(.horizontal, .sp24)
+                            .padding(.top, .sp16)
+                    }
+                    
+                    // Task Items or Skeletons
+                    VStack(spacing: .sp8) {
+                        if viewModel.isLoading {
+                            // Show skeleton task items
+                            ForEach(0..<5, id: \.self) { _ in
+                                TaskItemSkeleton()
+                                    .padding(.horizontal, .sp24)
+                            }
+                        } else {
+                            ForEach(viewModel.tasks) { task in
+                                TaskItemRow(
+                                    task: task,
+                                    viewModel: viewModel
+                                )
+                                .padding(.horizontal, .sp24)
+                            }
                         }
                     }
                     .padding(.top, .sp8)

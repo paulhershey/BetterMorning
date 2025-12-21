@@ -41,6 +41,7 @@ struct ExploreView: View {
                         // Only render if we can find the routine in data
                         if let routine = position.celebrityRoutine {
                             Button {
+                                HapticManager.lightTap()
                                 selectedRoutine = routine
                             } label: {
                                 Avatar(
@@ -49,6 +50,8 @@ struct ExploreView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel("\(routine.name)'s morning routine")
+                            .accessibilityHint("Double tap to view routine details")
                             .position(
                                 x: position.relativeX(in: geometry.size.width),
                                 y: position.relativeY(in: geometry.size.height)
@@ -82,7 +85,7 @@ struct ExploreView: View {
                 showingPaywall = false
                 showingCreateRoutine = true
             })
-            .presentationDetents([.medium])
+            .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
     }

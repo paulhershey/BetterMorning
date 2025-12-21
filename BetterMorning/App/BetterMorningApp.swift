@@ -12,7 +12,12 @@ import SwiftData
 struct BetterMorningApp: App {
     
     // MARK: - SwiftData Container
-    var sharedModelContainer: ModelContainer = {
+    let sharedModelContainer: ModelContainer
+    
+    /// Tracks if database initialization failed
+    @State private var databaseError: Error?
+    
+    init() {
         let schema = Schema([
             Routine.self,
             RoutineTask.self,
@@ -25,11 +30,20 @@ struct BetterMorningApp: App {
         )
         
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            sharedModelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            // Fallback to in-memory storage if persistent storage fails
+            // This allows the app to launch rather than crash
+            let fallbackConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            do {
+                sharedModelContainer = try ModelContainer(for: schema, configurations: [fallbackConfig])
+            } catch {
+                // Last resort: This should never be reached in practice
+                // If both persistent and in-memory storage fail, the app cannot function
+                fatalError("Fatal error: Unable to initialize database. Please reinstall the app. Error: \(error.localizedDescription)")
+            }
         }
-    }()
+    }
     
     // MARK: - App Body
     var body: some Scene {

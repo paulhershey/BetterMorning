@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		919FFFCB2EF5FF230079E8E3 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 919FFFCA2EF5FF230079E8E3 /* Lottie */; };
 		91F925E52EEFAF6B009027D4 /* Custom Routines Unlock.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 91F925E42EEFAF6B009027D4 /* Custom Routines Unlock.storekit */; };
 /* End PBXBuildFile section */
 
@@ -26,6 +27,19 @@
 			remoteInfo = BetterMorning;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		91BC66A82EF5FE5200F9E240 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		91A998392EE398AB002ED92E /* BetterMorning.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BetterMorning.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -70,6 +84,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				919FFFCB2EF5FF230079E8E3 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -121,6 +136,7 @@
 				91A998352EE398AB002ED92E /* Sources */,
 				91A998362EE398AB002ED92E /* Frameworks */,
 				91A998372EE398AB002ED92E /* Resources */,
+				91BC66A82EF5FE5200F9E240 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -131,6 +147,7 @@
 			);
 			name = BetterMorning;
 			packageProductDependencies = (
+				919FFFCA2EF5FF230079E8E3 /* Lottie */,
 			);
 			productName = BetterMorning;
 			productReference = 91A998392EE398AB002ED92E /* BetterMorning.app */;
@@ -214,6 +231,9 @@
 			);
 			mainGroup = 91A998302EE398AB002ED92E;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				919FFFC92EF5FF230079E8E3 /* XCRemoteSwiftPackageReference "lottie-ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 91A9983A2EE398AB002ED92E /* Products */;
 			projectDirPath = "";
@@ -606,6 +626,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		919FFFC92EF5FF230079E8E3 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		919FFFCA2EF5FF230079E8E3 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 919FFFC92EF5FF230079E8E3 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 91A998312EE398AB002ED92E /* Project object */;
 }

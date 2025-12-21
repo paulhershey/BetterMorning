@@ -10,17 +10,22 @@ import SwiftUI
 // MARK: - Custom Header View
 struct CustomHeader: View {
     @Binding var title: String
+    @Binding var isTitleFocused: Bool
     let isSaveEnabled: Bool
     let onSave: () -> Void
     let onTitleSubmit: (() -> Void)?
     
+    @FocusState private var internalFocus: Bool
+    
     init(
         title: Binding<String>,
+        isTitleFocused: Binding<Bool> = .constant(false),
         isSaveEnabled: Bool,
         onSave: @escaping () -> Void,
         onTitleSubmit: (() -> Void)? = nil
     ) {
         self._title = title
+        self._isTitleFocused = isTitleFocused
         self.isSaveEnabled = isSaveEnabled
         self.onSave = onSave
         self.onTitleSubmit = onTitleSubmit
@@ -51,6 +56,15 @@ struct CustomHeader: View {
                     .textInputAutocapitalization(.words)
                     .submitLabel(.done)
                     .autocorrectionDisabled(false)
+                    .focused($internalFocus)
+                    .onChange(of: isTitleFocused) { _, newValue in
+                        // Sync external focus state to internal
+                        internalFocus = newValue
+                    }
+                    .onChange(of: internalFocus) { _, newValue in
+                        // Sync internal focus state to external
+                        isTitleFocused = newValue
+                    }
                     .onChange(of: title) { oldValue, newValue in
                         // Intercept newline (Enter key) and treat as submit
                         if newValue.contains("\n") {
@@ -77,9 +91,9 @@ struct CustomHeader: View {
             
             Spacer(minLength: .sp16)
             
-            // Right: Save button
+            // Right: Create button
             TextButton(
-                "Save",
+                "Create",
                 variant: isSaveEnabled ? .branded : .disabled,
                 action: {
                     if isSaveEnabled {
@@ -110,9 +124,7 @@ private struct CustomHeaderPreview: View {
             CustomHeader(
                 title: $title,
                 isSaveEnabled: isSaveEnabled,
-                onSave: {
-                    print("Save tapped with title: \(title)")
-                }
+                onSave: {}
             )
             
             Divider()

@@ -37,7 +37,7 @@ struct TabItem: View {
                 .renderingMode(.template)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 24, height: 24)
+                .frame(width: .iconMedium, height: .iconMedium)
                 .foregroundStyle(iconColor)
                 .padding(.vertical, .sp16)
                 // UPDATED: Fixed width of 104pt (using your system variable)
@@ -59,23 +59,17 @@ struct TabItem: View {
             TabItem(
                 iconName: "icon_explore_black",
                 isActive: true
-            ) {
-                print("Explore tapped")
-            }
+            ) {}
             
             TabItem(
                 iconName: "icon_routine_black",
                 isActive: false
-            ) {
-                print("Routine tapped")
-            }
+            ) {}
             
             TabItem(
                 iconName: "icon_data_black",
                 isActive: false
-            ) {
-                print("Data tapped")
-            }
+            ) {}
         }
         .padding(.sp24)
     }

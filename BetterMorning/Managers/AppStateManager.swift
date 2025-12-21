@@ -9,6 +9,22 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+/// Error types for app state operations
+enum AppStateError: LocalizedError {
+    case resetFailed
+    case saveFailed
+    
+    var errorDescription: String? {
+        switch self {
+        case .resetFailed:
+            return "Failed to reset app data. Please try again."
+        case .saveFailed:
+            return "Failed to save changes. Please try again."
+        }
+    }
+}
+
+@MainActor
 @Observable
 final class AppStateManager {
     
@@ -24,6 +40,9 @@ final class AppStateManager {
     
     /// Currently selected tab (not persisted)
     var selectedTab: AppTab = .explore
+    
+    /// Last error that occurred during an app state operation
+    var lastError: AppStateError?
     
     // MARK: - Observable State
     
@@ -95,14 +114,16 @@ final class AppStateManager {
     
     /// Switch to a specific tab with animation
     func switchToTab(_ tab: AppTab) {
-        withAnimation(.easeInOut(duration: 0.3)) {
+        withAnimation(AppAnimations.standard) {
             selectedTab = tab
         }
     }
     
     /// Reset all app data (called from Settings)
     /// Note: Does NOT reset hasPurchasedPremium per spec
-    func resetAllData(modelContext: ModelContext) {
+    /// - Returns: True if reset was successful
+    @discardableResult
+    func resetAllData(modelContext: ModelContext) -> Bool {
         // 1. Clear UserDefaults (except purchase state)
         hasCompletedOnboarding = false
         notificationsEnabled = false // Reset to OFF - user can re-enable during onboarding
@@ -113,8 +134,11 @@ final class AppStateManager {
             // Delete all routines (cascades to tasks and day records)
             try modelContext.delete(model: Routine.self)
             try modelContext.save()
+            lastError = nil
+            return true
         } catch {
-            // Reset failed - non-critical, will be retried on next launch if needed
+            lastError = .resetFailed
+            return false
         }
         
         // 3. Cancel scheduled notifications
@@ -202,8 +226,9 @@ final class AppStateManager {
         
         do {
             try modelContext.save()
+            lastError = nil
         } catch {
-            // Day finalization failed - will be retried on next app launch
+            lastError = .saveFailed
         }
     }
 }

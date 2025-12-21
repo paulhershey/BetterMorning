@@ -21,13 +21,16 @@ enum AvatarSize: CGFloat {
 struct Avatar: View {
     let imageName: String
     let size: AvatarSize
+    let accessibilityName: String?
     
     init(
         imageName: String,
-        size: AvatarSize = .listMedium
+        size: AvatarSize = .listMedium,
+        accessibilityName: String? = nil
     ) {
         self.imageName = imageName
         self.size = size
+        self.accessibilityName = accessibilityName
     }
     
     var body: some View {
@@ -36,6 +39,16 @@ struct Avatar: View {
             .aspectRatio(contentMode: .fill)
             .frame(width: size.rawValue, height: size.rawValue)
             .clipShape(Circle())
+            .accessibilityLabel(accessibilityName ?? derivedAccessibilityLabel)
+    }
+    
+    /// Derives an accessibility label from the image name
+    private var derivedAccessibilityLabel: String {
+        // Convert "avatar_tim_cook" to "Tim Cook"
+        imageName
+            .replacingOccurrences(of: "avatar_", with: "")
+            .replacingOccurrences(of: "_", with: " ")
+            .capitalized
     }
 }
 

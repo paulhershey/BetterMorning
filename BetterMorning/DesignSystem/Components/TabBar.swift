@@ -55,6 +55,8 @@ struct TabBar: View {
                 .fill(Color.colorNeutralWhite)
         )
         .applyShadow(AppShadows.default)
+        // Animate the tab indicator when selectedTab changes (from swipe or tap)
+        .animation(.snappy, value: selectedTab)
     }
     
     // MARK: - Tab Button
@@ -83,7 +85,7 @@ struct TabBar: View {
                     .renderingMode(.template)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 24, height: 24)
+                    .frame(width: .iconMedium, height: .iconMedium)
                     .foregroundStyle(isSelected ? Color.colorNeutralWhite : Color.colorNeutralBlack)
             }
             .frame(width: .sp104, height: 56)

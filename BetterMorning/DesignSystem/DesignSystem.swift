@@ -15,12 +15,12 @@ extension Color {
     static let colorNeutralGrey3 = Color(hex: "#F5F5F5") // Light background
     static let colorNeutralBlack = Color(hex: "#000000")
     
-    static let brandPrimary = Color(hex: "#665AC0")
-    static let brandSecondary = Color(hex: "#D8D9FE")
-    static let brandTertiary = Color(hex: "#E8E9FF")
+    static let brandPrimary = Color(hex: "#592FEB")
+    static let brandSecondary = Color(hex: "#C7B9F8")
+    static let brandTertiary = Color(hex: "#ECE8FD")
     
-    static let utilityDanger = Color(hex: "#FB748A")
-    static let utilitySuccess = Color(hex: "#74FBA6")
+    static let utilityDanger = Color(hex: "#EB4E2B")
+    static let utilitySuccess = Color(hex: "#89DCB8")
     
     // Semantic colors for backgrounds
     static let backgroundPrimary = colorNeutralWhite
@@ -42,7 +42,7 @@ struct TextStyle {
     }
     
     var extraLineSpacing: CGFloat {
-        return max(lineHeight - size, 0)
+        return lineHeight - size
     }
 }
 
@@ -50,11 +50,11 @@ extension TextStyle {
     // Bricolage Grotesque
     static let pageTitle = TextStyle(name: "Page Title", fontName: "Bricolage Grotesque", size: 40, weight: .bold, tracking: -1, lineHeight: 40)
     static let heading1 = TextStyle(name: "Heading 1", fontName: "Bricolage Grotesque", size: 32, weight: .bold, tracking: -1, lineHeight: 32)
-    static let display = TextStyle(name: "Display", fontName: "Bricolage Grotesque", size: 64, weight: .bold, tracking: -1, lineHeight: 60)
+    static let display = TextStyle(name: "Display", fontName: "Bricolage Grotesque", size: 64, weight: .bold, tracking: -1, lineHeight: 0)
     
     // Inter
     static let heading4 = TextStyle(name: "Heading 4", fontName: "Inter", size: 16, weight: .bold, tracking: 0, lineHeight: 20)
-    static let bodyLarge = TextStyle(name: "Body Large", fontName: "Inter", size: 20, weight: .semibold, tracking: 0, lineHeight: 28)
+    static let bodyLarge = TextStyle(name: "Body Large", fontName: "Inter", size: 20, weight: .semibold, tracking: 0, lineHeight: 16)
     static let bodyStrong = TextStyle(name: "Body Strong", fontName: "Inter", size: 16, weight: .bold, tracking: 0, lineHeight: 20)
     static let bodyRegular = TextStyle(name: "Body", fontName: "Inter", size: 16, weight: .regular, tracking: 0, lineHeight: 20)
     
@@ -105,6 +105,17 @@ extension CGFloat {
     static let radiusLarge: CGFloat = 16
     static let radiusXlarge: CGFloat = 32
     static let radiusFull: CGFloat = 999
+    
+    // Border widths
+    static let borderWidthThin: CGFloat = 1
+    static let borderWidthMedium: CGFloat = 2
+    
+    // Opacity values
+    static let opacitySubtle: CGFloat = 0.1
+    static let opacityLight: CGFloat = 0.3
+    static let opacityMedium: CGFloat = 0.4
+    static let opacityStrong: CGFloat = 0.5
+    static let opacityHeavy: CGFloat = 0.8
 }
 
 // MARK: - 5. Icon Sizes
@@ -123,11 +134,73 @@ extension CGFloat {
     
     /// Bottom padding/spacer height to account for floating tab bar
     static let tabBarSpacerHeight: CGFloat = 120
+    
+    /// Lottie animation dimensions for empty routine state
+    static let emptyRoutineAnimationWidth: CGFloat = 382
+    static let emptyRoutineAnimationHeight: CGFloat = 344
+    
+    /// Lottie animation height for custom routine empty state
+    static let customEmptyAnimationHeight: CGFloat = 150
+    
+    /// Lottie animation height for onboarding screens
+    static let onboardingAnimationHeight: CGFloat = 426
+    
+    /// Height for Make-A-Wish logo on paywall
+    static let makeAWishLogoHeight: CGFloat = 49
+    
+    /// Bottom padding for onboarding screens
+    static let onboardingBottomPadding: CGFloat = 150
+    
+    /// Standard divider height
+    static let dividerHeight: CGFloat = 1
+    
+    /// Y-axis label width in data charts
+    static let yAxisLabelWidth: CGFloat = 16
+    
+    /// Success circle size for paywall overlay
+    static let successCircleSize: CGFloat = 80
+    
+    /// Swipe gesture threshold for onboarding
+    static let swipeThreshold: CGFloat = 50
+    
+    /// Scale effect for loading indicators
+    static let scaleSmall: CGFloat = 0.9
+    
+    /// Keyboard scroll spacer height
+    static let keyboardScrollSpacerHeight: CGFloat = 300
+    
+    /// Skeleton placeholder dimensions
+    static let skeletonTimeWidth: CGFloat = 60
+    static let skeletonTimeHeight: CGFloat = 12
+    static let skeletonTitleHeight: CGFloat = 18
+    static let skeletonAvatarSize: CGFloat = 32
+    static let skeletonTextWidth: CGFloat = 80
+    static let skeletonTextHeight: CGFloat = 14
+    static let skeletonNameWidth: CGFloat = 120
+    static let skeletonNameHeight: CGFloat = 16
+    static let skeletonChartHeight: CGFloat = 200
+    static let skeletonRoutineNameWidth: CGFloat = 180
+    static let skeletonRoutineNameHeight: CGFloat = 20
+    
+    /// DateCard width for date scroller (shows ~5 cards with 6th peeking)
+    static let dateCardWidth: CGFloat = 56
+}
+
+// MARK: - 8. Animation System
+struct AppAnimations {
+    static let fast = Animation.easeOut(duration: 0.2)
+    static let standard = Animation.easeInOut(duration: 0.3)
+    static let slow = Animation.easeInOut(duration: 0.4)
+    static let spring = Animation.spring(response: 0.4, dampingFraction: 0.6)
+    static let shimmer = Animation.linear(duration: 1.5).repeatForever(autoreverses: false)
 }
 
 struct AppShadows {
     // Your specific drop shadow from variables.json
-    static let `default` = ShadowStyle(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+    static let `default` = ShadowStyle(color: Color.colorNeutralBlack.opacity(CGFloat.opacitySubtle), radius: 8, x: 0, y: 4)
+    
+    /// Modal overlay backdrop color
+    static let modalBackdrop = Color.colorNeutralBlack.opacity(CGFloat.opacityMedium)
 }
 
 struct ShadowStyle {

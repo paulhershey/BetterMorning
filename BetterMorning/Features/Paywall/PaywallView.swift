@@ -32,76 +32,70 @@ struct PaywallView: View {
     
     var body: some View {
         ZStack {
+            // Background
+            Color.colorNeutralWhite
+                .ignoresSafeArea()
+            
             // Main content
-            VStack(spacing: .sp24) {
-                // Header
-                headerView
+            VStack(spacing: 0) {
+                // Lottie Animation
+                LottieView(animationName: "Paywall")
+                    .frame(
+                        width: .emptyRoutineAnimationWidth,
+                        height: .emptyRoutineAnimationHeight
+                    )
+                    .padding(.top, .sp24)
                 
-                Spacer()
+                // Make-A-Wish logo
+                Image("Make-A-Wish")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: .makeAWishLogoHeight)
+                    .padding(.top, .sp16)
                 
-                // Content
+                // Info content
                 VStack(spacing: .sp16) {
-                    Text("Create Your Own Routine")
+                    Text("Unlock your perfect morning for a one time charge of $0.99")
                         .style(.heading1)
                         .foregroundStyle(Color.colorNeutralBlack)
                         .multilineTextAlignment(.center)
                     
-                    Text(storeManager.productDescription)
+                    Text("Create custom routines built around your goals, your timing, and your life. One small upgrade for you, one giant impact for others: 100% of all proceeds go directly to Make-A-Wish.")
                         .style(.bodyRegular)
-                        .foregroundStyle(Color.colorNeutralGrey2)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, .sp24)
-                    
-                    // Price (from StoreKit)
-                    Text(storeManager.formattedPrice)
-                        .style(.display)
                         .foregroundStyle(Color.colorNeutralBlack)
-                        .padding(.top, .sp16)
-                        #if DEBUG
-                        // Debug: Long-press price to unlock premium without purchase
-                        .onLongPressGesture(minimumDuration: 1.0) {
-                            debugUnlockPremium()
-                        }
-                        #endif
-                    
-                    Text("One-time purchase")
-                        .style(.bodyRegular)
-                        .foregroundStyle(Color.colorNeutralGrey2)
-                    
-                    #if DEBUG
-                    Text("Debug: Long-press price to unlock")
-                        .style(.overline)
-                        .foregroundStyle(Color.colorNeutralGrey1)
-                    #endif
+                        .multilineTextAlignment(.center)
                 }
+                .padding(.horizontal, .sp24)
+                .padding(.top, .sp16)
                 
                 Spacer()
                 
-                // Purchase Button with loading state
+                // Purchase button
                 purchaseButton
                     .padding(.horizontal, .sp24)
+                    .padding(.bottom, .sp16)
                 
-                // Restore Purchases Button
+                // Restore Purchases
                 Button {
+                    HapticManager.lightTap()
                     restorePurchases()
                 } label: {
-                    Text("Restore Purchases")
+                    Text("Restore Purchase")
                         .style(.bodyRegular)
-                        .foregroundStyle(Color.colorNeutralGrey2)
-                        .underline()
+                        .foregroundStyle(Color.colorNeutralBlack)
                 }
                 .buttonStyle(.plain)
                 .disabled(isLoading)
-                .opacity(isLoading ? 0.5 : 1)
+                .opacity(isLoading ? CGFloat.opacityStrong : 1)
                 .padding(.bottom, .sp32)
             }
-            .background(Color.colorNeutralWhite)
             
             // Success overlay
             if showingSuccess {
                 successOverlay
             }
         }
+        .navigationBarHidden(true)
         .alert(errorMessage == "No previous purchases found to restore." ? "No Purchases Found" : "Purchase Error", isPresented: $showingError) {
             Button("OK", role: .cancel) {
                 errorMessage = nil
@@ -109,38 +103,33 @@ struct PaywallView: View {
         } message: {
             Text(errorMessage ?? "Something went wrong. Please try again.")
         }
-        .onAppear {
-            // Fetch products if not already loaded
-            Task {
-                await storeManager.fetchProducts()
-            }
-        }
     }
     
     // MARK: - Purchase Button
     
     private var purchaseButton: some View {
-        Button {
-            purchasePremium()
-        } label: {
-            HStack(spacing: .sp12) {
-                if isLoading {
+        Group {
+            if isLoading {
+                // Loading state
+                HStack(spacing: .sp12) {
                     ProgressView()
-                        .tint(Color.colorNeutralBlack)
-                        .scaleEffect(0.9)
+                        .tint(Color.colorNeutralWhite)
+                        .scaleEffect(.scaleSmall)
+                    
+                    Text("Processing...")
+                        .style(.buttonText)
+                        .foregroundStyle(Color.colorNeutralWhite)
                 }
-                
-                Text(isLoading ? "Processing..." : "Unlock Custom Routines")
-                    .style(.bodyStrong)
-                    .foregroundStyle(Color.colorNeutralBlack)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, .sp24)
+                .background(Color.colorNeutralBlack)
+                .clipShape(Capsule())
+            } else {
+                BlockButton("Purchase") {
+                    purchasePremium()
+                }
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: .sp56)
-            .background(Color.brandSecondary)
-            .clipShape(Capsule())
         }
-        .buttonStyle(.plain)
-        .disabled(isLoading)
     }
     
     // MARK: - Success Overlay
@@ -148,7 +137,7 @@ struct PaywallView: View {
     private var successOverlay: some View {
         ZStack {
             // Dimmed background
-            Color.black.opacity(0.4)
+            AppShadows.modalBackdrop
                 .ignoresSafeArea()
             
             // Success card
@@ -157,7 +146,7 @@ struct PaywallView: View {
                 ZStack {
                     Circle()
                         .fill(Color.brandSecondary)
-                        .frame(width: 80, height: 80)
+                        .frame(width: .successCircleSize, height: .successCircleSize)
                     
                     Image(systemName: "checkmark")
                         .font(.system(size: .iconXLarge, weight: .bold))
@@ -165,7 +154,7 @@ struct PaywallView: View {
                 }
                 .scaleEffect(showingSuccess ? 1 : 0.5)
                 .opacity(showingSuccess ? 1 : 0)
-                .animation(.spring(response: 0.4, dampingFraction: 0.6), value: showingSuccess)
+                .animation(AppAnimations.spring, value: showingSuccess)
                 
                 Text("Purchase Complete!")
                     .style(.heading1)
@@ -181,31 +170,6 @@ struct PaywallView: View {
             .padding(.horizontal, .sp40)
         }
         .transition(.opacity)
-    }
-    
-    private var headerView: some View {
-        ZStack {
-            Text("Premium")
-                .style(.bodyStrong)
-                .foregroundStyle(Color.colorNeutralBlack)
-            
-            HStack {
-                Spacer()
-                
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: .iconLarge))
-                        .foregroundStyle(Color.colorNeutralGrey2)
-                }
-                .buttonStyle(.plain)
-                .disabled(isLoading || showingSuccess)
-                .accessibilityLabel("Close")
-            }
-        }
-        .padding(.horizontal, .sp16)
-        .padding(.top, .sp16)
     }
     
     // MARK: - Actions
@@ -224,7 +188,7 @@ struct PaywallView: View {
                     HapticManager.success()
                     
                     // Show success animation
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(AppAnimations.standard) {
                         showingSuccess = true
                     }
                     
@@ -265,7 +229,7 @@ struct PaywallView: View {
                     HapticManager.success()
                     
                     // Show success animation for restore too
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(AppAnimations.standard) {
                         showingSuccess = true
                     }
                     
@@ -283,28 +247,6 @@ struct PaywallView: View {
             }
         }
     }
-    
-    #if DEBUG
-    /// Debug-only function to bypass StoreKit and unlock premium
-    private func debugUnlockPremium() {
-        HapticManager.success()
-        
-        // Directly unlock premium via AppStateManager
-        AppStateManager.shared.unlockPremium()
-        
-        // Show success animation
-        withAnimation(.easeInOut(duration: 0.3)) {
-            showingSuccess = true
-        }
-        
-        // Dismiss after delay
-        Task {
-            try? await Task.sleep(for: .milliseconds(1500))
-            dismiss()
-            onPurchaseComplete()
-        }
-    }
-    #endif
 }
 
 // MARK: - Preview
@@ -326,7 +268,7 @@ private struct PaywallSuccessPreview: View {
             
             // Success overlay preview
             ZStack {
-                Color.black.opacity(0.4)
+                AppShadows.modalBackdrop
                     .ignoresSafeArea()
                 
                 VStack(spacing: .sp24) {
@@ -336,7 +278,7 @@ private struct PaywallSuccessPreview: View {
                             .frame(width: 80, height: 80)
                         
                         Image(systemName: "checkmark")
-                            .font(.system(size: 36, weight: .bold))
+                            .font(.system(size: .iconXLarge, weight: .bold))
                             .foregroundStyle(Color.colorNeutralBlack)
                     }
                     

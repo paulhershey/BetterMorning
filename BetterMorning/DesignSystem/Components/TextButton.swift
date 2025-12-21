@@ -76,7 +76,10 @@ struct TextButton: View {
     }
     
     var body: some View {
-        Button(action: action) {
+        Button {
+            HapticManager.mediumTap()
+            action()
+        } label: {
             HStack(spacing: .sp4) {
                 Image(resolvedIconName)
                     .resizable()
@@ -95,23 +98,18 @@ struct TextButton: View {
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(text)
     }
 }
 
 // MARK: - Preview
 #Preview("Text Button Variants") {
     VStack(spacing: .sp16) {
-        TextButton("Add Task", variant: .branded) {
-            print("Branded tapped")
-        }
+        TextButton("Add Task", variant: .branded) {}
         
-        TextButton("Add Task", variant: .primary) {
-            print("Primary tapped")
-        }
+        TextButton("Add Task", variant: .primary) {}
         
-        TextButton("Add Task", variant: .secondary) {
-            print("Secondary tapped")
-        }
+        TextButton("Add Task", variant: .secondary) {}
     }
     .padding(.sp24)
 }

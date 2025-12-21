@@ -16,16 +16,23 @@ struct OnboardingStep: Identifiable {
     let bodyText: String
     let backgroundImageName: String
     let contentImageName: String?
+    let lottieAnimationName: String?
     let buttonTitle: String
     
     /// Whether this is the final step
     var isFinalStep: Bool {
         id == 5
     }
+    
+    /// Whether this step uses a Lottie animation (above content, no gradient)
+    var hasLottieAnimation: Bool {
+        lottieAnimationName != nil
+    }
 }
 
 // MARK: - Onboarding ViewModel
 
+@MainActor
 @Observable
 final class OnboardingViewModel {
     
@@ -44,41 +51,46 @@ final class OnboardingViewModel {
         OnboardingStep(
             id: 1,
             title: "Start with inspiration",
-            bodyText: "Pick a proven morning routine from someone successful to jump-start your day.",
+            bodyText: "Start your day with a proven morning routine inspired by people who are already successful.",
             backgroundImageName: "onboarding_bg_1",
-            contentImageName: "onboarding_celebs",
+            contentImageName: nil, // Using Lottie animation instead
+            lottieAnimationName: "Onboarding-1",
             buttonTitle: "Continue (1/5)"
         ),
         OnboardingStep(
             id: 2,
             title: "Build your own path",
-            bodyText: "Create a personalized routine and stay accountable as you grow.",
+            bodyText: "Create a routine tailored to you and stay accountable as your habits evolve over time.",
             backgroundImageName: "onboarding_bg_2",
-            contentImageName: "onboarding_tasks",
+            contentImageName: nil,
+            lottieAnimationName: "Onboarding-2",
             buttonTitle: "Continue (2/5)"
         ),
         OnboardingStep(
             id: 3,
             title: "Stay on track",
-            bodyText: "Get gentle reminders throughout your morning to help you follow through.",
+            bodyText: "Receive gentle reminders each morning that help you follow through without pressure.",
             backgroundImageName: "onboarding_bg_3",
-            contentImageName: "onboarding_notification",
+            contentImageName: nil,
+            lottieAnimationName: "Onboarding-3",
             buttonTitle: "Continue (3/5)"
         ),
         OnboardingStep(
             id: 4,
             title: "See your progress",
-            bodyText: "Track your habits, measure improvements, and celebrate consistency.",
+            bodyText: "Track habits, measure progress, and celebrate consistency as small wins add up daily.",
             backgroundImageName: "onboarding_bg_4",
-            contentImageName: "onboarding_data",
+            contentImageName: nil,
+            lottieAnimationName: "Onboarding-4",
             buttonTitle: "Continue (4/5)"
         ),
         OnboardingStep(
             id: 5,
             title: "Transform your life",
-            bodyText: "Build confidence as better mornings lead to better days—and a better you.",
+            bodyText: "Build confidence as better mornings create momentum for better days and a better you.",
             backgroundImageName: "onboarding_bg_5",
-            contentImageName: nil, // No content image for final step
+            contentImageName: nil,
+            lottieAnimationName: "Onboarding-5",
             buttonTitle: "Let's get started!"
         )
     ]
@@ -130,7 +142,7 @@ final class OnboardingViewModel {
     private func advanceToNextStep() {
         guard canAdvance else { return }
         swipeDirection = .forward
-        withAnimation(.easeInOut(duration: 0.3)) {
+        withAnimation(AppAnimations.standard) {
             currentStepIndex += 1
         }
     }
@@ -139,7 +151,7 @@ final class OnboardingViewModel {
     func goBack() {
         guard canGoBack else { return }
         swipeDirection = .backward
-        withAnimation(.easeInOut(duration: 0.3)) {
+        withAnimation(AppAnimations.standard) {
             currentStepIndex -= 1
         }
     }

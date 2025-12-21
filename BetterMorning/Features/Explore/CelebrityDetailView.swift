@@ -33,13 +33,14 @@ struct CelebrityDetailView: View {
             
             // Close Button (top right)
             Button {
+                HapticManager.lightTap()
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: .iconXSmall, weight: .semibold))
                     .foregroundStyle(Color.colorNeutralGrey2)
                     .frame(width: .iconLarge, height: .iconLarge)
-                    .background(Color.colorNeutralGrey1.opacity(0.5))
+                    .background(Color.colorNeutralGrey1.opacity(CGFloat.opacityStrong))
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
@@ -54,6 +55,11 @@ struct CelebrityDetailView: View {
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(spacing: .sp16) {
+            // Theme (above avatar)
+            Text(routine.theme)
+                .style(.overline)
+                .foregroundStyle(Color.colorNeutralBlack)
+            
             // Avatar using design system component
             Avatar(
                 imageName: routine.imageName,
@@ -63,6 +69,11 @@ struct CelebrityDetailView: View {
             // Name
             Text(routine.name)
                 .style(.heading1)
+                .foregroundStyle(Color.colorNeutralBlack)
+            
+            // Title (below name)
+            Text(routine.title)
+                .style(.overline)
                 .foregroundStyle(Color.colorNeutralBlack)
             
             // Bio
@@ -87,7 +98,7 @@ struct CelebrityDetailView: View {
                     TaskItem(
                         time: task.time,
                         title: task.title,
-                        variant: .constant(.completed),
+                        variant: .constant(.rest),
                         action: { }
                     )
                     .allowsHitTesting(false) // Display only, not clickable

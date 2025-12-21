@@ -37,6 +37,7 @@ struct RoutineDraft: Codable {
 
 // MARK: - ViewModel
 
+@MainActor
 @Observable
 final class CreateRoutineViewModel {
     
@@ -49,7 +50,7 @@ final class CreateRoutineViewModel {
     static let maxTaskTitleCharacters = 70
     
     /// Maximum number of tasks allowed per routine
-    static let maxTasks = 20
+    static let maxTasks = 12
     
     // MARK: - Properties
     
@@ -149,6 +150,33 @@ final class CreateRoutineViewModel {
         saveDraft()
     }
     
+    /// Updates an existing task with new title and time
+    /// - Parameters:
+    ///   - id: The UUID of the task to update
+    ///   - title: The new title
+    ///   - time: The new time
+    /// - Returns: True if the task was found and updated
+    @discardableResult
+    func updateTask(id: UUID, title: String, time: Date) -> Bool {
+        guard let index = tasks.firstIndex(where: { $0.id == id }) else {
+            return false
+        }
+        
+        let truncatedTitle = String(title.prefix(Self.maxTaskTitleCharacters))
+        tasks[index].title = truncatedTitle
+        tasks[index].time = time
+        sortTasksByTime()
+        saveDraft()
+        return true
+    }
+    
+    /// Gets a task by its ID
+    /// - Parameter id: The UUID of the task
+    /// - Returns: The task if found, nil otherwise
+    func getTask(id: UUID) -> DraftTask? {
+        tasks.first { $0.id == id }
+    }
+    
     /// Sorts tasks chronologically by time
     private func sortTasksByTime() {
         tasks.sort { $0.time < $1.time }
@@ -221,7 +249,7 @@ final class CreateRoutineViewModel {
         // Calculate tomorrow's date for startDate
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today) ?? today
         
         // Deactivate any currently active routine
         RoutineManager.shared.deactivateCurrentRoutine()

@@ -22,6 +22,10 @@ struct SettingsView: View {
     /// Whether to show the reset confirmation alert
     @State private var showingResetConfirmation: Bool = false
     
+    /// Whether to show the error alert
+    @State private var showingErrorAlert: Bool = false
+    @State private var errorMessage: String = ""
+    
     /// Binding for the notifications toggle that handles the logic via ViewModel
     private var notificationsBinding: Binding<Bool> {
         Binding(
@@ -76,11 +80,21 @@ struct SettingsView: View {
         .alert("Reset All Data?", isPresented: $showingResetConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Delete Everything", role: .destructive) {
-                viewModel.performReset(modelContext: modelContext)
-                dismiss()
+                let success = viewModel.performReset(modelContext: modelContext)
+                if success {
+                    dismiss()
+                } else {
+                    errorMessage = AppStateManager.shared.lastError?.localizedDescription ?? "Failed to reset data"
+                    showingErrorAlert = true
+                }
             }
         } message: {
             Text("This will delete all your routines, progress data, and settings. This action cannot be undone.")
+        }
+        .alert("Error", isPresented: $showingErrorAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage)
         }
     }
     

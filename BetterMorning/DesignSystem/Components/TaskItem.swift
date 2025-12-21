@@ -13,14 +13,15 @@ enum TaskItemVariant {
     case completed
     case failed
     case rest
+    case disabled
     
     // Logic: Only Rest and Completed are interactive toggle states.
-    // Active and Failed are display-only states.
+    // Active, Failed, and Disabled are display-only states.
     var isInteractive: Bool {
         switch self {
         case .rest, .completed:
             return true
-        case .active, .failed:
+        case .active, .failed, .disabled:
             return false
         }
     }
@@ -29,7 +30,7 @@ enum TaskItemVariant {
         switch self {
         case .active:
             return Color.brandSecondary // Purple highlight
-        case .completed, .failed, .rest:
+        case .completed, .failed, .rest, .disabled:
             return Color.colorNeutralGrey1 // Subtle grey border
         }
     }
@@ -38,7 +39,7 @@ enum TaskItemVariant {
         switch self {
         case .active:
             return 2 // Thicker for active state
-        case .completed, .failed, .rest:
+        case .completed, .failed, .rest, .disabled:
             return 1 // Standard hairline border
         }
     }
@@ -49,8 +50,28 @@ enum TaskItemVariant {
             return "icon_check_black"
         case .failed:
             return "icon_close_red"
-        case .active, .rest:
+        case .active, .rest, .disabled:
             return nil
+        }
+    }
+    
+    /// Time text color - faded for disabled state
+    var timeColor: Color {
+        switch self {
+        case .disabled:
+            return Color.colorNeutralGrey1
+        case .active, .completed, .failed, .rest:
+            return Color.colorNeutralGrey2
+        }
+    }
+    
+    /// Title text color - faded for disabled state
+    var titleColor: Color {
+        switch self {
+        case .disabled:
+            return Color.colorNeutralGrey1
+        case .active, .completed, .failed, .rest:
+            return Color.colorNeutralBlack
         }
     }
     
@@ -65,6 +86,8 @@ enum TaskItemVariant {
             return "Not completed"
         case .rest:
             return "Not started"
+        case .disabled:
+            return "Disabled"
         }
     }
 }
@@ -127,11 +150,11 @@ struct TaskItem: View {
             VStack(alignment: .leading, spacing: .sp4) {
                 Text(time.uppercased())
                     .style(.dataSmall)
-                    .foregroundStyle(Color.colorNeutralGrey2)
+                    .foregroundStyle(variant.timeColor)
                 
                 Text(displayTitle)
                     .style(.bodyRegular)
-                    .foregroundStyle(Color.colorNeutralBlack)
+                    .foregroundStyle(variant.titleColor)
                     .lineLimit(2)
                     .truncationMode(.tail)
             }
@@ -147,7 +170,7 @@ struct TaskItem: View {
                         .transition(.scale.combined(with: .opacity))
                 }
             }
-            .frame(width: 24, height: 24)
+            .frame(width: .iconMedium, height: .iconMedium)
         }
         .padding(.sp16)
         .background(Color.colorNeutralWhite)
@@ -196,11 +219,12 @@ private struct TaskItemPreviewWrapper: View {
     @State private var restState: TaskItemVariant = .rest
     @State private var completedState: TaskItemVariant = .completed
     @State private var failedState: TaskItemVariant = .failed
+    @State private var disabledState: TaskItemVariant = .disabled
     @State private var longTitleState: TaskItemVariant = .rest
     
     var body: some View {
         ZStack {
-            Color.colorNeutralGrey1.opacity(0.1).ignoresSafeArea()
+            Color.colorNeutralGrey1.opacity(CGFloat.opacitySubtle).ignoresSafeArea()
             
             ScrollView {
                 VStack(spacing: .sp16) {
@@ -212,17 +236,13 @@ private struct TaskItemPreviewWrapper: View {
                         time: "6:30AM",
                         title: "Rest Task",
                         variant: $restState
-                    ) {
-                        print("Toggled Rest")
-                    }
+                    ) {}
                     
                     TaskItem(
                         time: "7:00AM",
                         title: "Completed Task",
                         variant: $completedState
-                    ) {
-                        print("Toggled Completed")
-                    }
+                    ) {}
                     
                     Divider()
                     
@@ -234,9 +254,7 @@ private struct TaskItemPreviewWrapper: View {
                         time: "6:45AM",
                         title: "Drink strong tea (often with added ingredients like turmeric, ginger, and coconut oil) or water with lemon for hydration",
                         variant: $longTitleState
-                    ) {
-                        print("Toggled Long Title")
-                    }
+                    ) {}
                     
                     Divider()
                     
@@ -248,17 +266,19 @@ private struct TaskItemPreviewWrapper: View {
                         time: "6:00AM",
                         title: "Active Task",
                         variant: $activeState
-                    ) {
-                        print("Should not print")
-                    }
+                    ) {}
                     
                     TaskItem(
                         time: "8:00AM",
                         title: "Failed Task",
                         variant: $failedState
-                    ) {
-                        print("Should not print")
-                    }
+                    ) {}
+                    
+                    TaskItem(
+                        time: "9:00AM",
+                        title: "Disabled Task",
+                        variant: $disabledState
+                    ) {}
                 }
                 .padding(.sp24)
             }

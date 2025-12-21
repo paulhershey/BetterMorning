@@ -26,19 +26,13 @@ struct DataCard: View {
     let dateRange: String
     let dataPoints: [Int]
     let totalTasks: Int
+    let canGoBack: Bool
+    let canGoForward: Bool
     let onAction: (DataCardAction) -> Void
     let onPage: (Direction) -> Void
     
     @State private var showingActionSheet = false
-    
-    /// Tracks horizontal drag offset for swipe gesture
-    @State private var dragOffset: CGFloat = 0
-    
-    /// Tracks whether the current drag is horizontal (vs vertical for scrolling)
-    @State private var isHorizontalDrag: Bool = false
-    
-    /// Minimum swipe distance to trigger week navigation
-    private let swipeThreshold: CGFloat = 50
+    @State private var navigationDirection: Direction = .next
     
     private let dayLabels = ["S", "M", "T", "W", "T", "F", "S"]
     
@@ -48,6 +42,8 @@ struct DataCard: View {
         dateRange: String,
         dataPoints: [Int],
         totalTasks: Int,
+        canGoBack: Bool = true,
+        canGoForward: Bool = true,
         onAction: @escaping (DataCardAction) -> Void,
         onPage: @escaping (Direction) -> Void
     ) {
@@ -56,29 +52,39 @@ struct DataCard: View {
         self.dateRange = dateRange
         self.dataPoints = dataPoints
         self.totalTasks = totalTasks
+        self.canGoBack = canGoBack
+        self.canGoForward = canGoForward
         self.onAction = onAction
         self.onPage = onPage
     }
     
     var body: some View {
         VStack(spacing: 0) {
-            headerSection
+            footerSection
             
             Divider()
                 .background(Color.colorNeutralGrey1)
             
             chartSection
+                .id(dateRange) // Force re-render when week changes
+                .transition(
+                    .asymmetric(
+                        insertion: .move(edge: navigationDirection == .previous ? .leading : .trailing),
+                        removal: .move(edge: navigationDirection == .previous ? .trailing : .leading)
+                    )
+                )
             
             Divider()
                 .background(Color.colorNeutralGrey1)
             
-            footerSection
+            headerSection
         }
+        .clipped() // Clip the sliding animation to card bounds
         .background(Color.colorNeutralWhite)
         .clipShape(RoundedRectangle(cornerRadius: .radiusXlarge))
         .overlay(
             RoundedRectangle(cornerRadius: .radiusXlarge)
-                .stroke(Color.colorNeutralGrey1, lineWidth: 1)
+                .stroke(Color.colorNeutralGrey1, lineWidth: .borderWidthThin)
         )
         .confirmationDialog("Routine Options", isPresented: $showingActionSheet, titleVisibility: .hidden) {
             Button("Restart") {
@@ -97,13 +103,25 @@ private extension DataCard {
     var headerSection: some View {
         HStack {
             Button {
-                onPage(.previous)
+                if canGoBack {
+                    navigationDirection = .previous
+                    withAnimation(AppAnimations.standard) {
+                        onPage(.previous)
+                    }
+                }
             } label: {
                 Image("icon_chevron_left_black")
                     .resizable()
-                    .frame(width: 24, height: 24)
+                    .renderingMode(.template)
+                    .foregroundStyle(canGoBack ? Color.colorNeutralBlack : Color.colorNeutralGrey1)
+                    .frame(width: .iconMedium, height: .iconMedium)
+                    .frame(width: 44, height: 44) // 44x44 touch target
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .disabled(!canGoBack)
+            .accessibilityLabel("Previous week")
+            .accessibilityHint(canGoBack ? "Double tap to view previous week" : "No earlier data available")
             
             Spacer()
             
@@ -114,13 +132,25 @@ private extension DataCard {
             Spacer()
             
             Button {
-                onPage(.next)
+                if canGoForward {
+                    navigationDirection = .next
+                    withAnimation(AppAnimations.standard) {
+                        onPage(.next)
+                    }
+                }
             } label: {
                 Image("icon_chevron_right_black")
                     .resizable()
-                    .frame(width: 24, height: 24)
+                    .renderingMode(.template)
+                    .foregroundStyle(canGoForward ? Color.colorNeutralBlack : Color.colorNeutralGrey1)
+                    .frame(width: .iconMedium, height: .iconMedium)
+                    .frame(width: 44, height: 44) // 44x44 touch target
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .disabled(!canGoForward)
+            .accessibilityLabel("Next week")
+            .accessibilityHint(canGoForward ? "Double tap to view next week" : "Viewing current week")
         }
         .padding(.sp16)
     }
@@ -147,43 +177,8 @@ private extension DataCard {
         }
         .padding(.horizontal, .sp16)
         .padding(.vertical, .sp24)
-        // Note: Removed .contentShape(Rectangle()) to allow vertical scrolls to pass through
-        // The horizontal swipe gesture only activates on visible content (bars, labels)
-        .simultaneousGesture(
-            DragGesture()
-                .onChanged { value in
-                    let horizontal = abs(value.translation.width)
-                    let vertical = abs(value.translation.height)
-                    
-                    // Determine drag direction on first significant movement
-                    if !isHorizontalDrag && (horizontal > 10 || vertical > 10) {
-                        isHorizontalDrag = horizontal > vertical
-                    }
-                    
-                    // Only track horizontal offset if this is a horizontal drag
-                    if isHorizontalDrag {
-                        dragOffset = value.translation.width
-                    }
-                }
-                .onEnded { value in
-                    // Only trigger week navigation if this was a horizontal drag
-                    if isHorizontalDrag {
-                        let horizontalSwipe = value.translation.width
-                        
-                        if horizontalSwipe > swipeThreshold {
-                            // Swiped right → go to previous week
-                            onPage(.previous)
-                        } else if horizontalSwipe < -swipeThreshold {
-                            // Swiped left → go to next week
-                            onPage(.next)
-                        }
-                    }
-                    
-                    // Reset state
-                    dragOffset = 0
-                    isHorizontalDrag = false
-                }
-        )
+        // No swipe gesture - week navigation via arrow buttons only
+        // This allows TabView's page swipe to work without conflicts
     }
     
     var yAxisLabels: some View {
@@ -209,18 +204,18 @@ private extension DataCard {
             Spacer()
                 .frame(height: xAxisLabelHeight)
         }
-        .frame(width: 16)
+        .frame(width: .yAxisLabelWidth)
     }
     
     var gridLines: some View {
         VStack(spacing: 0) {
             ForEach(gridLineValues.reversed(), id: \.self) { _ in
-                VStack {
-                    Spacer()
-                    Rectangle()
-                        .fill(Color.colorNeutralGrey1)
-                        .frame(height: 1)
-                }
+                    VStack {
+                        Spacer()
+                        Rectangle()
+                            .fill(Color.colorNeutralGrey1)
+                            .frame(height: .dividerHeight)
+                    }
                 .frame(height: gridLineHeight)
             }
             // Bottom spacer for x-axis labels
@@ -325,9 +320,13 @@ private extension DataCard {
                 } label: {
                     Image("icon_more_black")
                         .resizable()
-                        .frame(width: 24, height: 24)
+                        .frame(width: .iconMedium, height: .iconMedium)
+                        .frame(width: 44, height: 44) // 44x44 touch target
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("More options for \(routineName)")
+                .accessibilityHint("Double tap to restart or delete this routine")
             }
         }
         .padding(.horizontal, .sp24)
@@ -368,23 +367,23 @@ private struct DataCardPreview: View {
                     dateRange: weeks[currentWeekIndex].dateRange,
                     dataPoints: weeks[currentWeekIndex].dataPoints,
                     totalTasks: 5,
-                    onAction: { action in
-                        print("Action: \(action)")
-                    },
+                    canGoBack: currentWeekIndex > 0,
+                    canGoForward: currentWeekIndex < weeks.count - 1,
+                    onAction: { _ in },
                     onPage: { direction in
                         navigateWeek(direction)
                     }
                 )
                 .id(currentWeekIndex) // Force view refresh for animation
                 .transition(slideTransition)
-                .animation(.easeInOut(duration: 0.3), value: currentWeekIndex)
+                .animation(AppAnimations.standard, value: currentWeekIndex)
                 
                 // Week indicator
                 HStack(spacing: .sp8) {
                     ForEach(0..<weeks.count, id: \.self) { index in
                         Circle()
                             .fill(index == currentWeekIndex ? Color.brandPrimary : Color.colorNeutralGrey1)
-                            .frame(width: 8, height: 8)
+                            .frame(width: .sp8, height: .sp8)
                     }
                 }
                 
@@ -396,12 +395,12 @@ private struct DataCardPreview: View {
             }
             .padding(.sp24)
         }
-        .background(Color.colorNeutralGrey1.opacity(0.3))
+        .background(Color.colorNeutralGrey1.opacity(CGFloat.opacityLight))
     }
     
     // Navigation logic
     private func navigateWeek(_ direction: Direction) {
-        withAnimation(.easeInOut(duration: 0.3)) {
+        withAnimation(AppAnimations.standard) {
             navigationDirection = direction
             
             switch direction {

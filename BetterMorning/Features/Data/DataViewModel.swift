@@ -34,10 +34,17 @@ struct WeekData {
 
 // MARK: - Data ViewModel
 
+@MainActor
 @Observable
 final class DataViewModel {
     
     // MARK: - State
+    
+    /// Whether data is currently loading (for skeleton states)
+    var isLoading: Bool = true
+    
+    /// Whether initial load has completed (prevents re-showing skeleton on tab switches)
+    private var hasCompletedInitialLoad: Bool = false
     
     /// All routines with historical data (fetched from RoutineManager)
     private(set) var routines: [Routine] = []
@@ -67,13 +74,55 @@ final class DataViewModel {
     // MARK: - Initialization
     
     init() {
-        refreshData()
+        // Don't call refreshData here - let onViewAppear handle initial load with skeleton
+    }
+    
+    // MARK: - View Lifecycle
+    
+    /// Called when the Data view appears
+    /// Shows skeleton on first load, then refreshes data
+    func onViewAppear() {
+        if !hasCompletedInitialLoad {
+            isLoading = true
+            
+            // Brief delay to show skeleton (visual polish)
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(300))
+                
+                // Fetch data
+                performRefresh()
+                
+                // Complete loading with animation
+                withAnimation(AppAnimations.fast) {
+                    isLoading = false
+                }
+                hasCompletedInitialLoad = true
+            }
+        } else {
+            // Subsequent appearances: just refresh without skeleton
+            performRefresh()
+        }
     }
     
     // MARK: - Data Fetching
     
     /// Refresh the list of routines from RoutineManager
     func refreshData() {
+        // For pull-to-refresh: show brief loading, then refresh
+        isLoading = true
+        
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(200))
+            performRefresh()
+            
+            withAnimation(AppAnimations.fast) {
+                isLoading = false
+            }
+        }
+    }
+    
+    /// Internal refresh without loading state management
+    private func performRefresh() {
         routines = RoutineManager.shared.getAllRoutines()
         
         // Initialize week offsets for any new routines
