@@ -44,7 +44,9 @@ struct Avatar: View {
     
     /// Derives an accessibility label from the image name
     private var derivedAccessibilityLabel: String {
-        // Convert "avatar_tim_cook" to "Tim Cook"
+        // Convert "avatar_17" to "Avatar 17"
+        // Note: For numbered avatars, this will produce "Avatar 17", etc.
+        // The function converts underscores to spaces and capitalizes
         imageName
             .replacingOccurrences(of: "avatar_", with: "")
             .replacingOccurrences(of: "_", with: " ")
@@ -59,7 +61,7 @@ struct Avatar: View {
         HStack(spacing: .sp16) {
             VStack {
                 Avatar(
-                    imageName: "avatar_tim_cook",
+                    imageName: "avatar_17",
                     size: .profileLarge
                 )
                 Text("profileLarge")
@@ -69,7 +71,7 @@ struct Avatar: View {
             
             VStack {
                 Avatar(
-                    imageName: "avatar_oprah_winfrey",
+                    imageName: "avatar_10",
                     size: .profileMedium
                 )
                 Text("profileMedium")
@@ -82,7 +84,7 @@ struct Avatar: View {
         HStack(spacing: .sp16) {
             VStack {
                 Avatar(
-                    imageName: "avatar_elon_musk",
+                    imageName: "avatar_4",
                     size: .listLarge
                 )
                 Text("listLarge")
@@ -92,7 +94,7 @@ struct Avatar: View {
             
             VStack {
                 Avatar(
-                    imageName: "avatar_serena_williams",
+                    imageName: "avatar_14",
                     size: .listMedium
                 )
                 Text("listMedium")
@@ -105,7 +107,7 @@ struct Avatar: View {
         HStack(spacing: .sp16) {
             VStack {
                 Avatar(
-                    imageName: "avatar_barack_obama",
+                    imageName: "avatar_3",
                     size: .listSmall
                 )
                 Text("listSmall")
@@ -115,7 +117,7 @@ struct Avatar: View {
             
             VStack {
                 Avatar(
-                    imageName: "avatar_michelle_obama",
+                    imageName: "avatar_9",
                     size: .mini
                 )
                 Text("mini")

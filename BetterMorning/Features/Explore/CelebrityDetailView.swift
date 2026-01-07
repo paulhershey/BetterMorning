@@ -55,11 +55,6 @@ struct CelebrityDetailView: View {
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(spacing: .sp16) {
-            // Theme (above avatar)
-            Text(routine.theme)
-                .style(.overline)
-                .foregroundStyle(Color.colorNeutralBlack)
-            
             // Avatar using design system component
             Avatar(
                 imageName: routine.imageName,
@@ -70,11 +65,7 @@ struct CelebrityDetailView: View {
             Text(routine.name)
                 .style(.heading1)
                 .foregroundStyle(Color.colorNeutralBlack)
-            
-            // Title (below name)
-            Text(routine.title)
-                .style(.overline)
-                .foregroundStyle(Color.colorNeutralBlack)
+                .multilineTextAlignment(.center)
             
             // Bio
             Text(routine.bio)
@@ -151,7 +142,7 @@ struct CelebrityDetailView: View {
 #Preview("Celebrity Detail View") {
     NavigationStack {
         CelebrityDetailView(
-            routine: RoutineData.celebrityRoutines[1] // Oprah
+            routine: RoutineData.celebrityRoutines[1]
         )
     }
 }

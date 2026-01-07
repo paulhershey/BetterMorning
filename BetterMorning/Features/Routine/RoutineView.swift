@@ -97,6 +97,7 @@ struct RoutineView: View {
             CreateRoutineView()
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+                .presentationSizing(.page)  // iPad: Forces full-page presentation instead of form sheet
                 .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showingPaywall) {
@@ -106,6 +107,7 @@ struct RoutineView: View {
             })
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
+            .presentationSizing(.page)  // iPad: Forces full-page presentation
         }
         .navigationBarHidden(true)
         .onChange(of: RoutineManager.shared.lastError) { _, error in
@@ -672,7 +674,7 @@ private struct PastDayPreviewWrapper: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: .sp8) {
                     // Routine Name
-                    Text("Tim Ferriss Routine")
+                    Text("Sample Routine")
                         .style(.heading4)
                         .foregroundStyle(Color.colorNeutralBlack)
                         .padding(.horizontal, .sp24)

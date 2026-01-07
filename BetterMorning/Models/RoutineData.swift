@@ -17,8 +17,6 @@ enum RoutineType: String {
 struct CelebrityRoutine: Identifiable {
     let id: UUID
     let name: String
-    let title: String
-    let theme: String
     let bio: String
     let imageName: String
     let tasks: [CelebrityTask]
@@ -27,8 +25,6 @@ struct CelebrityRoutine: Identifiable {
     
     init(
         name: String,
-        title: String,
-        theme: String,
         bio: String,
         imageName: String,
         tasks: [CelebrityTask],
@@ -37,8 +33,6 @@ struct CelebrityRoutine: Identifiable {
     ) {
         self.id = UUID()
         self.name = name
-        self.title = title
-        self.theme = theme
         self.bio = bio
         self.imageName = imageName
         self.tasks = tasks
@@ -67,13 +61,10 @@ struct RoutineData {
     
     static let celebrityRoutines: [CelebrityRoutine] = [
         
-        // MARK: - Tim Cook
         CelebrityRoutine(
-            name: "Tim Cook",
-            title: "CEO, Apple",
-            theme: "The Customer-First Morning",
-            bio: "Tim Cook is the CEO of Apple, known for his disciplined lifestyle, operational brilliance, and leadership style rooted in focus and consistency. He's recognized for early mornings, direct communication, and a relentless commitment to Apple's global innovation.",
-            imageName: "avatar_tim_cook",
+            name: "The Customer - First Morning",
+            bio: "A disciplined, early-rising routine built around focus, consistency, and clear thinking. This morning emphasizes thoughtful communication, attention to real user needs, and starting the day with intention before most people are awake.",
+            imageName: "avatar_17",
             tasks: [
                 CelebrityTask(time: "3:45 AM", title: "Wake up early and avoid social media", durationMinutes: 5),
                 CelebrityTask(time: "3:50 AM", title: "Review 5–10 important emails (customers or stakeholders)", durationMinutes: 25),
@@ -90,13 +81,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Oprah Winfrey
         CelebrityRoutine(
-            name: "Oprah Winfrey",
-            title: "Media mogul",
-            theme: "The Grounded Presence Morning",
-            bio: "Oprah Winfrey is an iconic media leader, actress, and entrepreneur known for her empathy-driven storytelling, personal growth focus, and powerful influence across television, publishing, and philanthropy.",
-            imageName: "avatar_oprah_winfrey",
+            name: "The Grounded Presence Morning",
+            bio: "A calm, reflective morning centered on emotional awareness, intention, and mindful presence. This routine prioritizes slowing down, connecting inwardly, and choosing how you want to feel before the day fully begins.",
+            imageName: "avatar_10",
             tasks: [
                 CelebrityTask(time: "6:00 AM", title: "Wake naturally without rushing, allowing body to fully awaken", durationMinutes: 5),
                 CelebrityTask(time: "6:05 AM", title: "Take three slow, grounding breaths to settle mind", durationMinutes: 5),
@@ -111,13 +99,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Elon Musk
         CelebrityRoutine(
-            name: "Elon Musk",
-            title: "CEO, Tesla/SpaceX",
-            theme: "The Efficiency-First Morning",
-            bio: "Elon Musk is an engineer, entrepreneur, and founder of Tesla and SpaceX. Known for his intense work ethic and ambitious vision, he focuses heavily on problem-solving, innovation, and long-term planetary impact.",
-            imageName: "avatar_elon_musk",
+            name: "The Efficiency-First Morning",
+            bio: "A problem-solving focused routine designed for clarity, speed, and execution. This morning minimizes distractions, emphasizes high-leverage thinking, and channels energy into solving the most important challenge of the day.",
+            imageName: "avatar_4",
             tasks: [
                 CelebrityTask(time: "7:00 AM", title: "Wake up and orient mind toward today's priorities", durationMinutes: 5),
                 CelebrityTask(time: "7:05 AM", title: "Check only critical emails requiring immediate decisions today", durationMinutes: 10),
@@ -133,13 +118,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Anna Wintour
         CelebrityRoutine(
-            name: "Anna Wintour",
-            title: "Former Editor-in-Chief, Vogue",
-            theme: "The Decisive Discipline Morning",
-            bio: "Anna Wintour is one of fashion's most influential figures, shaping global style for decades as Vogue's longtime editor-in-chief. Known for her discipline, taste, and iconic leadership presence.",
-            imageName: "avatar_anna_wintour",
+            name: "The Decisive Discipline Morning",
+            bio: "A highly structured morning built on routine, precision, and consistency. This approach removes unnecessary decisions, reinforces personal standards, and creates momentum through deliberate habits and early commitment.",
+            imageName: "avatar_1",
             tasks: [
                 CelebrityTask(time: "5:00 AM", title: "Wake at a fixed time, without hesitation or snoozing", durationMinutes: 45),
                 CelebrityTask(time: "5:45 AM", title: "Complete physical activity like tennis or brisk morning walk", durationMinutes: 60),
@@ -154,13 +136,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Michelle Obama
         CelebrityRoutine(
-            name: "Michelle Obama",
-            title: "Former First Lady, author",
-            theme: "The Strong Foundation Morning",
-            bio: "Michelle Obama is an attorney, author, and former First Lady known for her advocacy in health, education, and community empowerment. She's admired for her resilience, discipline, and authenticity.",
-            imageName: "avatar_michelle_obama",
+            name: "The Strong Foundation Morning",
+            bio: "A balanced, strength-driven routine grounded in discipline, family connection, and self-care. This morning combines physical training, focused presence, and steady preparation for a demanding, meaningful day.",
+            imageName: "avatar_9",
             tasks: [
                 CelebrityTask(time: "4:30 AM", title: "Wake up early with calm intention and steady focus", durationMinutes: 10),
                 CelebrityTask(time: "4:40 AM", title: "Hydrate body and mentally prepare for physical, focused readiness", durationMinutes: 20),
@@ -175,13 +154,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Barack Obama
         CelebrityRoutine(
-            name: "Barack Obama",
-            title: "Former U.S. President",
-            theme: "The Earned Authority Morning",
-            bio: "Barack Obama is the 44th President of the United States, celebrated for his leadership, communication, and calm decision-making. His disciplined mornings supported a demanding presidency.",
-            imageName: "avatar_barack_obama",
+            name: "The Earned Authority Morning",
+            bio: "A composed leadership routine focused on clarity, responsibility, and thoughtful decision-making. This morning blends physical readiness, informed perspective, and calm preparation for high-stakes leadership work.",
+            imageName: "avatar_3",
             tasks: [
                 CelebrityTask(time: "7:00 AM", title: "Wake up calmly and deliberately to center attention", durationMinutes: 5),
                 CelebrityTask(time: "7:05 AM", title: "Complete weights or cardio workout to energize body", durationMinutes: 40),
@@ -195,13 +171,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Salvador Dalí
         CelebrityRoutine(
-            name: "Salvador Dalí",
-            title: "Painter",
-            theme: "The Creative Spark Morning",
-            bio: "Salvador Dalí was a Spanish surrealist painter known for his dreamlike imagery, eccentric personality, and technical mastery. A pioneer of surrealism, he blended subconscious exploration with theatrical creativity.",
-            imageName: "avatar_salvador_dali",
+            name: "The Creative Spark Morning",
+            bio: "An imaginative, unstructured morning designed to access creativity and subconscious ideas. This routine encourages curiosity, sensory awareness, and playful exploration before formal work begins.",
+            imageName: "avatar_12",
             tasks: [
                 CelebrityTask(time: "8:00 AM", title: "Wake slowly, allowing thoughts to surface naturally and unforced", durationMinutes: 5),
                 CelebrityTask(time: "8:05 AM", title: "Sit quietly with eyes closed, breathing deeply and observing", durationMinutes: 5),
@@ -216,13 +189,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Richard Branson
         CelebrityRoutine(
-            name: "Richard Branson",
-            title: "Founder, Virgin Group",
-            theme: "The Energy-Driven Morning",
-            bio: "Richard Branson is a billionaire entrepreneur and adventurer known for building the Virgin empire and living a high-energy, optimistic lifestyle.",
-            imageName: "avatar_richard_branson",
+            name: "The Energy-Driven Morning",
+            bio: "A high-energy, optimistic routine centered on movement, connection, and idea generation. This morning favors activity, conversation, and momentum to fuel both creativity and productivity.",
+            imageName: "avatar_11",
             tasks: [
                 CelebrityTask(time: "5:00 AM", title: "Wake up early and prepare for active day", durationMinutes: 10),
                 CelebrityTask(time: "5:10 AM", title: "Exercise outdoors, preferably in fresh morning air", durationMinutes: 50),
@@ -237,13 +207,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Jeff Bezos
         CelebrityRoutine(
-            name: "Jeff Bezos",
-            title: "Founder, Amazon",
-            theme: "The High-Quality Decision Morning",
-            bio: "Jeff Bezos is the founder of Amazon and Blue Origin, known for intentional decision-making, long-term thinking, and protecting his mental clarity each morning.",
-            imageName: "avatar_jeff_bezos",
+            name: "The High-Quality Decision Morning",
+            bio: "A slow, deliberate morning built to protect mental clarity and long-term thinking. This routine avoids early pressure, prioritizes rest and presence, and reserves energy for important decisions later in the day.",
+            imageName: "avatar_6",
             tasks: [
                 CelebrityTask(time: "7:00 AM", title: "Wake after full night of restorative sleep feeling refreshed", durationMinutes: 10),
                 CelebrityTask(time: "7:10 AM", title: "Spend time puttering without structured agenda or pressure today", durationMinutes: 35),
@@ -257,13 +224,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Tony Robbins
         CelebrityRoutine(
-            name: "Tony Robbins",
-            title: "Entrepreneur & coach",
-            theme: "The State-Change Morning",
-            bio: "Tony Robbins is a world-renowned motivational speaker, author, and strategist known for high-energy performance habits and mindset training frameworks.",
-            imageName: "avatar_tony_robbins",
+            name: "The State-Change Morning",
+            bio: "An energizing routine designed to rapidly shift physical and emotional state. This morning uses movement, breath, gratitude, and visualization to create focus, confidence, and elevated momentum.",
+            imageName: "avatar_19",
             tasks: [
                 CelebrityTask(time: "7:00 AM", title: "Wake up and hydrate body immediately upon rising", durationMinutes: 5),
                 CelebrityTask(time: "7:05 AM", title: "Take supplements according to personal protocol and timing", durationMinutes: 5),
@@ -278,13 +242,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Jocko Willink
         CelebrityRoutine(
-            name: "Jocko Willink",
-            title: "Retired Navy SEAL, author",
-            theme: "The Discipline Morning",
-            bio: "Jocko Willink is a former Navy SEAL commander, leadership author, and podcaster known for extreme discipline and his \"4:30 a.m.\" ethos.",
-            imageName: "avatar_jocko_willink",
+            name: "The Discipline Morning",
+            bio: "A strict, no-negotiation routine centered on ownership, physical challenge, and mental toughness. This morning reinforces accountability, consistency, and commitment through decisive early action.",
+            imageName: "avatar_7",
             tasks: [
                 CelebrityTask(time: "4:30 AM", title: "Wake immediately without negotiating with alarm or excuses", durationMinutes: 5),
                 CelebrityTask(time: "4:35 AM", title: "Begin intense physical training session with disciplined effort", durationMinutes: 45),
@@ -299,13 +260,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Mark Wahlberg
         CelebrityRoutine(
-            name: "Mark Wahlberg",
-            title: "Actor & producer",
-            theme: "The Extreme Structure Morning",
-            bio: "Mark Wahlberg is an actor, producer, and entrepreneur known for his intense fitness regimen, early mornings, and disciplined lifestyle.",
-            imageName: "avatar_mark_wahlberg",
+            name: "The Extreme Structure Morning",
+            bio: "An intensely scheduled routine built around early rising, physical training, and precise planning. This morning emphasizes structure, physical readiness, and disciplined execution from the very first hour.",
+            imageName: "avatar_8",
             tasks: [
                 CelebrityTask(time: "2:30 AM", title: "Wake extremely early with disciplined intention and unwavering commitment", durationMinutes: 5),
                 CelebrityTask(time: "2:35 AM", title: "Pray or reflect quietly to center mind and purpose", durationMinutes: 25),
@@ -320,13 +278,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Serena Williams
         CelebrityRoutine(
-            name: "Serena Williams",
-            title: "Tennis legend & entrepreneur",
-            theme: "The Balanced Performance Morning",
-            bio: "Serena Williams is one of the greatest athletes of all time, known for her power, resilience, and entrepreneurial ventures beyond tennis.",
-            imageName: "avatar_serena_williams",
+            name: "The Balanced Performance Morning",
+            bio: "A performance-oriented routine blending physical training, recovery, and personal care. This morning balances intensity with presence, supporting both athletic focus and long-term sustainability.",
+            imageName: "avatar_14",
             tasks: [
                 CelebrityTask(time: "7:00 AM", title: "Wake with steady, relaxed focus and calm intentional breathing", durationMinutes: 10),
                 CelebrityTask(time: "7:10 AM", title: "Eat nourishing breakfast to fuel training and sustained energy", durationMinutes: 35),
@@ -341,13 +296,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Arianna Huffington
         CelebrityRoutine(
-            name: "Arianna Huffington",
-            title: "Founder, HuffPost & Thrive Global",
-            theme: "The Calm Clarity Morning",
-            bio: "Arianna Huffington is a media entrepreneur and wellness advocate known for championing sleep, recovery, and sustainable productivity.",
-            imageName: "avatar_arianna_huffington",
+            name: "The Calm Clarity Morning",
+            bio: "A gentle, restorative routine centered on sleep, mindfulness, and nervous-system regulation. This morning protects calm focus, reduces cognitive overload, and supports sustainable productivity.",
+            imageName: "avatar_2",
             tasks: [
                 CelebrityTask(time: "6:30 AM", title: "Wake gently without urgency or stress, easing into awareness", durationMinutes: 5),
                 CelebrityTask(time: "6:35 AM", title: "Take deep breaths to calm nervous system and settle mind", durationMinutes: 10),
@@ -362,13 +314,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Tim Ferriss
         CelebrityRoutine(
-            name: "Tim Ferriss",
-            title: "Author, investor",
-            theme: "The Self-Experiment Morning",
-            bio: "Tim Ferriss is an author, investor, and podcaster known for dissecting the habits of high performers and designing practical systems for improvement.",
-            imageName: "avatar_tim_ferriss",
+            name: "The Self-Experiment Morning",
+            bio: "A reflective, systems-focused routine designed for learning and optimization. This morning emphasizes journaling, experimentation, and identifying small improvements that compound over time.",
+            imageName: "avatar_18",
             tasks: [
                 CelebrityTask(time: "7:00 AM", title: "Wake and immediately make bed to signal day start", durationMinutes: 5),
                 CelebrityTask(time: "7:05 AM", title: "Meditate briefly to clear mind and settle attention", durationMinutes: 15),
@@ -383,13 +332,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Issa Rae
         CelebrityRoutine(
-            name: "Issa Rae",
-            title: "Creator of Insecure",
-            theme: "The Creative Protection Morning",
-            bio: "Issa Rae is an actress, writer, and producer whose creative discipline and early-morning work habits helped her rise from YouTube to HBO success.",
-            imageName: "avatar_issa_rae",
+            name: "The Creative Protection Morning",
+            bio: "An early, distraction-free routine designed to protect creative energy. This morning prioritizes uninterrupted focus, mental clarity, and securing meaningful creative output before the day fills up.",
+            imageName: "avatar_5",
             tasks: [
                 CelebrityTask(time: "4:00 AM", title: "Wake early to protect creative energy and mental clarity", durationMinutes: 10),
                 CelebrityTask(time: "4:10 AM", title: "Exercise to fully wake body and elevate baseline energy", durationMinutes: 35),
@@ -405,13 +351,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Satya Nadella
         CelebrityRoutine(
-            name: "Satya Nadella",
-            title: "CEO, Microsoft",
-            theme: "The Empathetic Leader Morning",
-            bio: "Satya Nadella is the CEO of Microsoft, known for empathetic leadership, emotional intelligence, and guiding the company through massive transformation.",
-            imageName: "avatar_satya_nadella",
+            name: "The Empathetic Leader Morning",
+            bio: "A thoughtful leadership routine grounded in empathy, reflection, and perspective. This morning emphasizes gratitude, learning, and intentional connection before entering decision-heavy work.",
+            imageName: "avatar_13",
             tasks: [
                 CelebrityTask(time: "6:00 AM", title: "Wake calmly and orient toward gratitude for the day", durationMinutes: 10),
                 CelebrityTask(time: "6:10 AM", title: "Reflect on things you appreciate from yesterday and today", durationMinutes: 20),
@@ -426,13 +369,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Sheryl Sandberg
         CelebrityRoutine(
-            name: "Sheryl Sandberg",
-            title: "Former COO, Meta",
-            theme: "The Structured Family Morning",
-            bio: "Sheryl Sandberg is a technology executive and author known for her leadership at Meta and her advocacy for women in the workplace.",
-            imageName: "avatar_sheryl_sandberg",
+            name: "The Structured Family Morning",
+            bio: "A family-centered routine balancing personal preparation with caregiving responsibilities. This morning emphasizes presence, patience, and organization while smoothly transitioning into focused work.",
+            imageName: "avatar_15",
             tasks: [
                 CelebrityTask(time: "5:30 AM", title: "Wake early and prepare for day with calm focus", durationMinutes: 10),
                 CelebrityTask(time: "5:40 AM", title: "Exercise or meditate briefly to energize body and mind", durationMinutes: 30),
@@ -447,13 +387,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Whitney Wolfe Herd
         CelebrityRoutine(
-            name: "Whitney Wolfe Herd",
-            title: "Founder, Bumble",
-            theme: "The Global CEO Morning",
-            bio: "Whitney Wolfe Herd is an entrepreneur and the founder of Bumble, known for reshaping online dating with a focus on women-first design.",
-            imageName: "avatar_whitney_wolfe_herd",
+            name: "The Global CEO Morning",
+            bio: "An internationally aware routine designed for calm focus and strategic leadership. This morning balances personal grounding, global communication, and intentional preparation for complex responsibilities.",
+            imageName: "avatar_20",
             tasks: [
                 CelebrityTask(time: "5:15 AM", title: "Wake early with calm focus and steady breathing", durationMinutes: 15),
                 CelebrityTask(time: "5:30 AM", title: "Prepare coffee as grounding ritual, savoring aroma and warmth", durationMinutes: 30),
@@ -468,13 +405,10 @@ struct RoutineData {
             isActive: false
         ),
         
-        // MARK: - Shonda Rhimes
         CelebrityRoutine(
-            name: "Shonda Rhimes",
-            title: "Showrunner, Grey's Anatomy, Scandal",
-            theme: "The Quiet Creation Morning",
-            bio: "Shonda Rhimes is an award-winning television producer, writer, and showrunner behind Grey's Anatomy, Scandal, and Bridgerton, known for her disciplined creativity and storytelling mastery.",
-            imageName: "avatar_shonda_rhimes",
+            name: "The Quiet Creation Morning",
+            bio: "A quiet, early routine built to protect deep creative focus. This morning emphasizes solitude, writing, and uninterrupted flow before external demands and distractions take over.",
+            imageName: "avatar_16",
             tasks: [
                 CelebrityTask(time: "5:00 AM", title: "Wake early before household noise and daily demands begin", durationMinutes: 15),
                 CelebrityTask(time: "5:15 AM", title: "Journal quietly to clear mind and surface creative thoughts", durationMinutes: 30),

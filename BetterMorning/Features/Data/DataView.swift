@@ -59,6 +59,7 @@ struct DataView: View {
             CreateRoutineView()
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+                .presentationSizing(.page)  // iPad: Forces full-page presentation instead of form sheet
                 .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showingPaywall) {
@@ -68,6 +69,7 @@ struct DataView: View {
             })
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
+            .presentationSizing(.page)  // iPad: Forces full-page presentation
         }
         .alert("Delete Routine?", isPresented: showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) {
@@ -301,7 +303,7 @@ private struct DataViewWithMockData: View {
                     VStack(spacing: .sp24) {
                         // Mock Active Routine Card
                         DataCard(
-                            routineName: "Tim Ferriss Routine",
+                            routineName: "Sample Routine",
                             isActive: true,
                             dateRange: "Dec 8-14",
                             dataPoints: [4, 6, 5, 6, 6, 5, 0],

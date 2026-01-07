@@ -58,7 +58,7 @@ final class RoutineViewModel {
     /// Routine name for display
     /// Falls back to preview name when no active routine exists
     var routineName: String {
-        activeRoutine?.name ?? "Tim Ferriss Routine"
+        activeRoutine?.name ?? "Sample Routine"
     }
     
     /// Preview tasks for Canvas when no active routine exists

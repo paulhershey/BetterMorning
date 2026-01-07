@@ -68,6 +68,7 @@ struct ExploreView: View {
         .navigationBarHidden(true)
         .sheet(item: $selectedRoutine) { routine in
             CelebrityDetailView(routine: routine)
+                .presentationSizing(.page)  // iPad: Forces full-page presentation
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
@@ -78,6 +79,7 @@ struct ExploreView: View {
             CreateRoutineView()
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
+                .presentationSizing(.page)  // iPad: Forces full-page presentation instead of form sheet
                 .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showingPaywall) {
@@ -87,6 +89,7 @@ struct ExploreView: View {
             })
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
+            .presentationSizing(.page)  // iPad: Forces full-page presentation
         }
     }
     
@@ -133,36 +136,36 @@ private struct AvatarPosition: Identifiable {
     // The Configuration Data
     static let allPositions: [AvatarPosition] = [
         // Row 1 (Top)
-        .init(imageName: "avatar_tim_cook", size: .profileLarge, figmaX: 0, figmaY: 0),
-        .init(imageName: "avatar_satya_nadella", size: .listMedium, figmaX: 145, figmaY: 8),
-        .init(imageName: "avatar_issa_rae", size: .listSmall, figmaX: 226, figmaY: 60),
-        .init(imageName: "avatar_tim_ferriss", size: .listLarge, figmaX: 294, figmaY: 0),
+        .init(imageName: "avatar_17", size: .profileLarge, figmaX: 0, figmaY: 0),
+        .init(imageName: "avatar_13", size: .listMedium, figmaX: 145, figmaY: 8),
+        .init(imageName: "avatar_5", size: .listSmall, figmaX: 226, figmaY: 60),
+        .init(imageName: "avatar_18", size: .listLarge, figmaX: 294, figmaY: 0),
         
         // Row 2
-        .init(imageName: "avatar_arianna_huffington", size: .listSmall, figmaX: 28, figmaY: 154),
-        .init(imageName: "avatar_tony_robbins", size: .profileMedium, figmaX: 111, figmaY: 95),
-        .init(imageName: "avatar_whitney_wolfe_herd", size: .listSmall, figmaX: 202, figmaY: 178),
-        .init(imageName: "avatar_elon_musk", size: .profileMedium, figmaX: 268, figmaY: 102),
+        .init(imageName: "avatar_2", size: .listSmall, figmaX: 28, figmaY: 154),
+        .init(imageName: "avatar_19", size: .profileMedium, figmaX: 111, figmaY: 95),
+        .init(imageName: "avatar_20", size: .listSmall, figmaX: 202, figmaY: 178),
+        .init(imageName: "avatar_4", size: .profileMedium, figmaX: 268, figmaY: 102),
         
         // Row 3
-        .init(imageName: "avatar_michelle_obama", size: .profileLarge, figmaX: 72, figmaY: 206),
-        .init(imageName: "avatar_serena_williams", size: .listMedium, figmaX: 267, figmaY: 220),
+        .init(imageName: "avatar_9", size: .profileLarge, figmaX: 72, figmaY: 206),
+        .init(imageName: "avatar_14", size: .listMedium, figmaX: 267, figmaY: 220),
         
         // Row 4
-        .init(imageName: "avatar_sheryl_sandberg", size: .profileMedium, figmaX: 0, figmaY: 317),
-        .init(imageName: "avatar_mark_wahlberg", size: .listSmall, figmaX: 117, figmaY: 358),
-        .init(imageName: "avatar_richard_branson", size: .profileMedium, figmaX: 185, figmaY: 292),
-        .init(imageName: "avatar_salvador_dali", size: .listMedium, figmaX: 281, figmaY: 369),
+        .init(imageName: "avatar_15", size: .profileMedium, figmaX: 0, figmaY: 317),
+        .init(imageName: "avatar_8", size: .listSmall, figmaX: 117, figmaY: 358),
+        .init(imageName: "avatar_11", size: .profileMedium, figmaX: 185, figmaY: 292),
+        .init(imageName: "avatar_12", size: .listMedium, figmaX: 281, figmaY: 369),
         
         // Row 5
-        .init(imageName: "avatar_anna_wintour", size: .listLarge, figmaX: 44, figmaY: 436),
-        .init(imageName: "avatar_jeff_bezos", size: .profileLarge, figmaX: 153, figmaY: 407),
+        .init(imageName: "avatar_1", size: .listLarge, figmaX: 44, figmaY: 436),
+        .init(imageName: "avatar_6", size: .profileLarge, figmaX: 153, figmaY: 407),
         
         // Row 6 (Bottom)
-        .init(imageName: "avatar_oprah_winfrey", size: .listLarge, figmaX: 0, figmaY: 540),
-        .init(imageName: "avatar_jocko_willink", size: .listMedium, figmaX: 107, figmaY: 535),
-        .init(imageName: "avatar_shonda_rhimes", size: .listSmall, figmaX: 202, figmaY: 561),
-        .init(imageName: "avatar_barack_obama", size: .profileMedium, figmaX: 278, figmaY: 524),
+        .init(imageName: "avatar_10", size: .listLarge, figmaX: 0, figmaY: 540),
+        .init(imageName: "avatar_7", size: .listMedium, figmaX: 107, figmaY: 535),
+        .init(imageName: "avatar_16", size: .listSmall, figmaX: 202, figmaY: 561),
+        .init(imageName: "avatar_3", size: .profileMedium, figmaX: 278, figmaY: 524),
     ]
 }
 
