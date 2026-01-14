@@ -59,7 +59,7 @@ struct DataView: View {
             CreateRoutineView()
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
-                .presentationSizing(.page)  // iPad: Forces full-page presentation instead of form sheet
+                .presentationSizing(.page)  // Forces full-page presentation instead of form sheet
                 .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showingPaywall) {
@@ -69,7 +69,7 @@ struct DataView: View {
             })
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
-            .presentationSizing(.page)  // iPad: Forces full-page presentation
+            .presentationSizing(.page)  // Forces full-page presentation
         }
         .alert("Delete Routine?", isPresented: showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) {

@@ -68,7 +68,7 @@ struct ExploreView: View {
         .navigationBarHidden(true)
         .sheet(item: $selectedRoutine) { routine in
             CelebrityDetailView(routine: routine)
-                .presentationSizing(.page)  // iPad: Forces full-page presentation
+                .presentationSizing(.page)  // Forces full-page presentation
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
@@ -79,7 +79,7 @@ struct ExploreView: View {
             CreateRoutineView()
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
-                .presentationSizing(.page)  // iPad: Forces full-page presentation instead of form sheet
+                .presentationSizing(.page)  // Forces full-page presentation instead of form sheet
                 .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showingPaywall) {
@@ -89,7 +89,7 @@ struct ExploreView: View {
             })
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
-            .presentationSizing(.page)  // iPad: Forces full-page presentation
+            .presentationSizing(.page)  // Forces full-page presentation
         }
     }
     

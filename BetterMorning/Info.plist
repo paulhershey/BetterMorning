@@ -2,26 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Better Morning sends you a daily reminder at the start of your morning routine to help you stay consistent.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>BricolageGrotesque-Bold.ttf</string>
 		<string>Inter-Bold.ttf</string>
 		<string>Inter-Regular.ttf</string>
 		<string>Inter-SemiBold.ttf</string>
-	</array>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>NSUserNotificationsUsageDescription</key>
-	<string>Better Morning sends you a daily reminder at the start of your morning routine to help you stay consistent.</string>
-	<key>UIUserInterfaceStyle</key>
-	<string>Light</string>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~iphone</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 </dict>
 </plist>

@@ -97,7 +97,7 @@ struct RoutineView: View {
             CreateRoutineView()
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
-                .presentationSizing(.page)  // iPad: Forces full-page presentation instead of form sheet
+                .presentationSizing(.page)  // Forces full-page presentation instead of form sheet
                 .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showingPaywall) {
@@ -107,7 +107,7 @@ struct RoutineView: View {
             })
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
-            .presentationSizing(.page)  // iPad: Forces full-page presentation
+            .presentationSizing(.page)  // Forces full-page presentation
         }
         .navigationBarHidden(true)
         .onChange(of: RoutineManager.shared.lastError) { _, error in
